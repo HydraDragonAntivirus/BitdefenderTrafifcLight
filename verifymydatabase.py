@@ -2,9 +2,8 @@ import os
 import time
 import requests
 import urllib3
-import threading
 from requests.exceptions import ConnectionError, Timeout
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed, Manager
 
 # Suppress SSL warning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -17,9 +16,7 @@ CLIENT_ID        = "a4c35c82-b0b5-46c3-b641-41ed04075269"
 NIMBUS_IPS       = ["34.117.254.173", "34.120.243.77", "34.98.122.109"]
 
 INPUT_DIR   = "website"
-MAX_WORKERS = 10000  # Too high = throttling or bans
-
-write_lock = threading.Lock()  # Lock for writing to file safely
+MAX_WORKERS = 8  # Processes, not threads
 
 def request_with_retries(method, url, **kwargs):
     backoff = 1
@@ -34,7 +31,6 @@ def request_with_retries(method, url, **kwargs):
                 return None
 
 def scan_domain(domain: str) -> tuple[str, dict]:
-    """Scan using Bitdefender Nimbus and return result dict."""
     params = {"url": f"http://{domain}"}
     headers = {CLIENT_ID_HEADER: CLIENT_ID, "Host": CLOUD_HOST}
     for ip in NIMBUS_IPS:
@@ -64,20 +60,17 @@ def process_file(fname: str):
         domains = [line.strip() for line in infile if line.strip() and not line.startswith("#")]
 
     total = len(domains)
-    progress = 0
+    done = 0
 
     with open(out_path, 'w', encoding='utf-8') as outfile:
-        def task(domain):
-            nonlocal progress
-            domain, result = scan_domain(domain)
-            with write_lock:
+        with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            future_to_domain = {executor.submit(scan_domain, domain): domain for domain in domains}
+            for future in as_completed(future_to_domain):
+                domain, result = future.result()
                 outfile.write(f"{domain}\t{result}\n")
-                outfile.flush()  # Force immediate write
-                progress += 1
-                print(f"  [{progress}/{total}] {domain} → {result}")
-
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            executor.map(task, domains)
+                outfile.flush()  # Ensure immediate write
+                done += 1
+                print(f"  [{done}/{total}] {domain} → {result}")
 
     print(f"✅ Finished {fname}\n")
 
