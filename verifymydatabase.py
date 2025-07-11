@@ -1,77 +1,90 @@
+import os
 import time
 import requests
 import urllib.parse
 import urllib3
-from requests.exceptions import ConnectionError, Timeout, HTTPError
+from requests.exceptions import ConnectionError, Timeout
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# === Configuration ===
+# Suppress InsecureRequestWarning for verify=False
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Configuration
 CLOUD_HOST       = "nimbus.bitdefender.net"
 URL_STATUS_PATH  = "/url/status"
 CLIENT_ID_HEADER = "X-Nimbus-ClientId"
 CLIENT_ID        = "a4c35c82-b0b5-46c3-b641-41ed04075269"
+NIMBUS_IPS       = ["34.117.254.173", "34.120.243.77", "34.98.122.109"]
 
-# Known anycast IPs for nimbus.bitdefender.net
-NIMBUS_IPS = [
-    "34.117.254.173",
-    "34.120.243.77",
-    "34.98.122.109",
-]
+# Directory containing your database text files
+INPUT_DIR   = "website"
+MAX_WORKERS = 10000  # tune to your environment
 
-# Suppress only the single InsecureRequestWarning from requests
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-def _make_request_with_retries(method, url, **kwargs):
+def request_with_retries(method, url, **kwargs):
     backoff = 1
     for attempt in range(4):
         try:
             return requests.request(method, url, timeout=10, **kwargs)
-        except (ConnectionError, Timeout) as e:
+        except (ConnectionError, Timeout):
             if attempt < 3:
-                print(f"[!] Network error ({e}), retrying in {backoff}s…")
                 time.sleep(backoff)
                 backoff *= 2
             else:
                 raise
 
-def scan_url_direct(url: str) -> dict:
-    """
-    Try each known Nimbus IP in turn, sending Host: header so we
-    reach nimbus.bitdefender.net without needing DNS, and
-    disable hostname checking on the cert.
-    """
-    params  = {"url": url}
-    headers = {
-        CLIENT_ID_HEADER: CLIENT_ID,
-        "Host": CLOUD_HOST,
-    }
-
+def scan_domain(domain: str) -> tuple[str, dict]:
+    """Returns (domain, result_dict)."""
+    params = {"url": f"http://{domain}"}
+    headers = {CLIENT_ID_HEADER: CLIENT_ID, "Host": CLOUD_HOST}
     for ip in NIMBUS_IPS:
         endpoint = f"https://{ip}{URL_STATUS_PATH}"
-        print(f"[i] Trying {ip}…")
         try:
-            # verify=False skips hostname check and cert validity
-            resp = _make_request_with_retries(
-                "GET",
-                endpoint,
+            resp = request_with_retries(
+                "GET", endpoint,
                 params=params,
                 headers=headers,
                 verify=False
             )
             resp.raise_for_status()
-            return resp.json()
-        except HTTPError as he:
-            print(f"[!] HTTP error from {ip}: {he} - {he.response.text}")
-        except Exception as e:
-            print(f"[!] Failed at {ip}: {e}")
+            return domain, resp.json()
+        except Exception:
+            continue
+    return domain, {"error": "scan_failed"}
 
-    # If we get here, none of the IPs worked
-    raise ConnectionError(f"All Nimbus IPs failed: {NIMBUS_IPS}")
+def process_file(fname: str):
+    in_path  = os.path.join(INPUT_DIR, fname)
+    out_path = os.path.join(
+        INPUT_DIR,
+        f"{os.path.splitext(fname)[0]}_results.txt"
+    )
+
+    print(f"Processing {fname} → {os.path.basename(out_path)}")
+    with open(in_path, 'r', encoding='utf-8', errors='ignore') as infile, \
+         open(out_path, 'w', encoding='utf-8') as outfile:
+
+        # Launch scans
+        futures = {}
+        total = 0
+        for line in infile:
+            dom = line.strip()
+            if not dom or dom.startswith("#"):
+                continue
+            futures[ThreadPoolExecutor().submit(scan_domain, dom)] = dom
+            total += 1
+
+        # As each completes, write immediately
+        done = 0
+        for future in as_completed(futures):
+            domain, result = future.result()
+            outfile.write(f"{domain}\t{result}\n")
+            outfile.flush()
+            done += 1
+            print(f"  [{done}/{total}] {domain} → {result}")
+
+    print(f"Finished {fname}\n")
 
 if __name__ == "__main__":
-    test_url = "http://www.example.com"
-    print(f"Scanning single URL: {test_url}")
-    try:
-        result = scan_url_direct(test_url)
-        print("Result:", result)
-    except Exception as e:
-        print(f"[ERR] Unable to scan URL: {e}")
+    for fname in sorted(os.listdir(INPUT_DIR)):
+        if fname.lower().endswith(".txt"):
+            process_file(fname)
+    print("All done.")
