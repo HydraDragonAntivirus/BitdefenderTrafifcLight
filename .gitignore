@@ -1,3 +1,7 @@
+# Big website files
+website/IPv4Malware.txt
+website/MalwareSubDomains.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
