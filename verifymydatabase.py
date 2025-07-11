@@ -1,24 +1,25 @@
 import os
 import time
 import requests
-import urllib.parse
 import urllib3
+import threading
 from requests.exceptions import ConnectionError, Timeout
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Suppress InsecureRequestWarning for verify=False
+# Suppress SSL warning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Configuration
+# === Configuration ===
 CLOUD_HOST       = "nimbus.bitdefender.net"
 URL_STATUS_PATH  = "/url/status"
 CLIENT_ID_HEADER = "X-Nimbus-ClientId"
 CLIENT_ID        = "a4c35c82-b0b5-46c3-b641-41ed04075269"
 NIMBUS_IPS       = ["34.117.254.173", "34.120.243.77", "34.98.122.109"]
 
-# Directory containing your database text files
 INPUT_DIR   = "website"
-MAX_WORKERS = 10000  # tune to your environment
+MAX_WORKERS = 10000  # Too high = throttling or bans
+
+write_lock = threading.Lock()  # Lock for writing to file safely
 
 def request_with_retries(method, url, **kwargs):
     backoff = 1
@@ -30,21 +31,23 @@ def request_with_retries(method, url, **kwargs):
                 time.sleep(backoff)
                 backoff *= 2
             else:
-                raise
+                return None
 
 def scan_domain(domain: str) -> tuple[str, dict]:
-    """Returns (domain, result_dict)."""
+    """Scan using Bitdefender Nimbus and return result dict."""
     params = {"url": f"http://{domain}"}
     headers = {CLIENT_ID_HEADER: CLIENT_ID, "Host": CLOUD_HOST}
     for ip in NIMBUS_IPS:
-        endpoint = f"https://{ip}{URL_STATUS_PATH}"
         try:
             resp = request_with_retries(
-                "GET", endpoint,
+                "GET",
+                f"https://{ip}{URL_STATUS_PATH}",
                 params=params,
                 headers=headers,
                 verify=False
             )
+            if resp is None:
+                continue
             resp.raise_for_status()
             return domain, resp.json()
         except Exception:
@@ -53,38 +56,33 @@ def scan_domain(domain: str) -> tuple[str, dict]:
 
 def process_file(fname: str):
     in_path  = os.path.join(INPUT_DIR, fname)
-    out_path = os.path.join(
-        INPUT_DIR,
-        f"{os.path.splitext(fname)[0]}_results.txt"
-    )
+    out_path = os.path.join(INPUT_DIR, f"{os.path.splitext(fname)[0]}_results.txt")
 
     print(f"Processing {fname} → {os.path.basename(out_path)}")
-    with open(in_path, 'r', encoding='utf-8', errors='ignore') as infile, \
-         open(out_path, 'w', encoding='utf-8') as outfile:
 
-        # Launch scans
-        futures = {}
-        total = 0
-        for line in infile:
-            dom = line.strip()
-            if not dom or dom.startswith("#"):
-                continue
-            futures[ThreadPoolExecutor().submit(scan_domain, dom)] = dom
-            total += 1
+    with open(in_path, 'r', encoding='utf-8', errors='ignore') as infile:
+        domains = [line.strip() for line in infile if line.strip() and not line.startswith("#")]
 
-        # As each completes, write immediately
-        done = 0
-        for future in as_completed(futures):
-            domain, result = future.result()
-            outfile.write(f"{domain}\t{result}\n")
-            outfile.flush()
-            done += 1
-            print(f"  [{done}/{total}] {domain} → {result}")
+    total = len(domains)
+    progress = 0
 
-    print(f"Finished {fname}\n")
+    with open(out_path, 'w', encoding='utf-8') as outfile:
+        def task(domain):
+            nonlocal progress
+            domain, result = scan_domain(domain)
+            with write_lock:
+                outfile.write(f"{domain}\t{result}\n")
+                outfile.flush()  # Force immediate write
+                progress += 1
+                print(f"  [{progress}/{total}] {domain} → {result}")
+
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            executor.map(task, domains)
+
+    print(f"✅ Finished {fname}\n")
 
 if __name__ == "__main__":
     for fname in sorted(os.listdir(INPUT_DIR)):
         if fname.lower().endswith(".txt"):
             process_file(fname)
-    print("All done.")
+    print("✅ All done.")
