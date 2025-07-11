@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 REM Her domaini sırayla işle
-for /f "delims=" %%d in (MalwareDomains.txt) do (
+for /f "delims=" %%d in (PhishingDomains.txt) do (
     echo Domain kontrol ediliyor: %%d
     ping -n 1 %%d >nul
 
