@@ -21,6 +21,16 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # === Configuration ===
 BOT_TOKEN = "YOUR_DISCORD_BOT_TOKEN_HERE"
 
+URL_REGEX = re.compile(
+    r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+',
+    re.IGNORECASE
+)
+
+AUTO_SCAN_ENABLED = True  # Set to False to disable auto-scanning
+AUTO_SCAN_CHANNELS = []   # Leave empty to scan all channels, or add specific channel IDs
+SCAN_COOLDOWN = {}        # Track scan cooldowns per URL
+COOLDOWN_SECONDS = 300    # 5 minutes cooldown per URL
+
 # GridinSoft Configuration
 GRIDINSOFT_URL = "https://gridinsoft.com/online-virus-scanner/url/"
 CSV_FILE = "DomainScanResults.csv"
@@ -372,6 +382,162 @@ def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: D
     
     return result
 
+def extract_urls_from_text(text: str) -> List[str]:
+    """Extract URLs from message text"""
+    urls = URL_REGEX.findall(text)
+    # Clean up URLs and remove duplicates
+    clean_urls = []
+    for url in urls:
+        url = url.strip()
+        if url and url not in clean_urls:
+            clean_urls.append(url)
+    return clean_urls
+
+def is_url_on_cooldown(url: str) -> bool:
+    """Check if URL is on cooldown"""
+    if url in SCAN_COOLDOWN:
+        time_diff = time.time() - SCAN_COOLDOWN[url]
+        return time_diff < COOLDOWN_SECONDS
+    return False
+
+def add_url_to_cooldown(url: str):
+    """Add URL to cooldown tracker"""
+    SCAN_COOLDOWN[url] = time.time()
+
+async def perform_auto_scan(url: str) -> Dict:
+    """Perform automatic scan of URL"""
+    loop = asyncio.get_event_loop()
+    
+    # Extract domain from URL for threat intel check
+    domain = url.replace('http://', '').replace('https://', '').split('/')[0]
+    
+    try:
+        # Run all scans concurrently
+        gridinsoft_task = loop.run_in_executor(None, scan_gridinsoft, domain)
+        bitdefender_task = loop.run_in_executor(None, scan_bitdefender, url)
+        threat_intel_task = loop.run_in_executor(None, check_threat_intel, domain)
+        
+        gridinsoft_result = await gridinsoft_task
+        bitdefender_result = await bitdefender_task
+        threat_intel_result = await threat_intel_task
+        
+        return {
+            'gridinsoft': gridinsoft_result,
+            'bitdefender': bitdefender_result,
+            'threat_intel': threat_intel_result
+        }
+    except Exception as e:
+        return {'error': str(e)}
+
+def format_auto_scan_results(url: str, scan_results: Dict) -> str:
+    """Format auto-scan results in compact format"""
+    if 'error' in scan_results:
+        return f"⚠️ **Auto-scan failed for** `{url}`: {scan_results['error']}"
+    
+    # Check if any threats were found
+    threat_intel = scan_results.get('threat_intel', {})
+    gridinsoft = scan_results.get('gridinsoft', {})
+    bitdefender = scan_results.get('bitdefender', {})
+    
+    threats_found = []
+    
+    # Check threat intelligence
+    if threat_intel.get('threats'):
+        threats_found.extend(threat_intel['threats'])
+    
+    # Check GridinSoft risk
+    risk = gridinsoft.get('risk', 'Unknown')
+    if risk != 'Unknown' and not any(safe_word in risk.lower() for safe_word in ['safe', 'clean', 'low']):
+        threats_found.append(f"GridinSoft: {risk}")
+    
+    # Check Bitdefender
+    if isinstance(bitdefender, dict):
+        if bitdefender.get('domain_grey', False):
+            threats_found.append("Bitdefender: Harmful website")
+        elif bitdefender.get('status') == 'malicious':
+            threats_found.append("Bitdefender: Malicious")
+        elif bitdefender.get('status') == 'suspicious':
+            threats_found.append("Bitdefender: Suspicious")
+    
+    # Format response based on findings
+    if threats_found:
+        result = f"🚨 **THREAT DETECTED** in URL: `{url}`\n"
+        result += f"**Threats:** {', '.join(threats_found[:3])}"  # Limit to 3 threats
+        if len(threats_found) > 3:
+            result += f" (+{len(threats_found) - 3} more)"
+        result += f"\n*Use `!scan {url}` for detailed analysis*"
+        return result
+    elif threat_intel.get('whitelist'):
+        return f"✅ **Safe URL detected:** `{url}` (Whitelisted)"
+    else:
+        return f"✅ **URL scanned:** `{url}` - No threats detected"
+
+@bot.event
+async def on_message(message):
+    """Handle incoming messages and auto-scan URLs"""
+    # Don't scan bot's own messages
+    if message.author == bot.user:
+        return
+    
+    # Check if auto-scanning is enabled
+    if not AUTO_SCAN_ENABLED:
+        await bot.process_commands(message)
+        return
+    
+    # Check if channel is allowed (if specific channels are configured)
+    if AUTO_SCAN_CHANNELS and message.channel.id not in AUTO_SCAN_CHANNELS:
+        await bot.process_commands(message)
+        return
+    
+    # Extract URLs from message
+    urls = extract_urls_from_text(message.content)
+    
+    if urls:
+        for url in urls:
+            # Check cooldown
+            if is_url_on_cooldown(url):
+                continue
+            
+            # Add to cooldown
+            add_url_to_cooldown(url)
+            
+            # Send scanning message
+            scan_message = await message.channel.send(f"🔍 Auto-scanning detected URL...")
+            
+            try:
+                # Perform scan
+                scan_results = await perform_auto_scan(url)
+                
+                # Format and send results
+                formatted_result = format_auto_scan_results(url, scan_results)
+                await scan_message.edit(content=formatted_result)
+                
+            except Exception as e:
+                await scan_message.edit(content=f"❌ Auto-scan error for `{url}`: {str(e)}")
+    
+    # Process commands normally
+    await bot.process_commands(message)
+
+# Add new command to control auto-scanning
+@bot.command(name="autoscan", help="Toggle auto-scanning on/off")
+@commands.has_permissions(manage_messages=True)
+async def toggle_autoscan(ctx, action: str = "status"):
+    """Discord command: !autoscan [on/off/status]"""
+    global AUTO_SCAN_ENABLED
+    
+    if action.lower() == "on":
+        AUTO_SCAN_ENABLED = True
+        await ctx.send("✅ **Auto-scanning enabled** - URLs posted in chat will be automatically scanned")
+    elif action.lower() == "off":
+        AUTO_SCAN_ENABLED = False
+        await ctx.send("❌ **Auto-scanning disabled** - URLs will not be automatically scanned")
+    elif action.lower() == "status":
+        status = "✅ Enabled" if AUTO_SCAN_ENABLED else "❌ Disabled"
+        cooldown_count = len(SCAN_COOLDOWN)
+        await ctx.send(f"📊 **Auto-scan Status:** {status}\n🕒 **URLs on cooldown:** {cooldown_count}")
+    else:
+        await ctx.send("❓ **Usage:** `!autoscan [on/off/status]`")
+
 @bot.event
 async def on_ready():
     """Bot startup event"""
@@ -543,9 +709,10 @@ async def stats(ctx):
     
     await ctx.send(response)
 
+# Update the commands list to include the new command
 @bot.command(name="commands", help="Show available commands")
 async def commands_list(ctx):
-    """Discord command: !commands"""
+    """Discord command: !commands - Updated version"""
     help_text = """
 🤖 **HydraDragon AV Discord Bot Commands:**
 
@@ -559,23 +726,27 @@ async def commands_list(ctx):
 • `!stats` - Show threat intelligence statistics
 • `!commands` - Show this help message
 
+**🤖 Auto-Scanning Commands:**
+• `!autoscan [on/off/status]` - Control automatic URL scanning
+
 **🛡️ Features:**
 • Multi-engine URL scanning
 • Threat intelligence correlation
 • Real-time threat detection
+• **Automatic URL scanning in chat**
 • Comprehensive reporting
 
 **💾 Threat Intelligence Lists:**
-• 600+ million threat indicators
+• 22+ million threat indicators
 • Domains, subdomains, and IPs
 • Malware, phishing, spam, abuse
 • Regular updates from multiple sources
 
-**🔍 Bitdefender Status Classifications:**
-• No categories + No grey = Unknown
-• Grey status = Harmful website  
-• Has categories + No grey = Clean
-• Standard statuses: Clean, Malicious, Suspicious
+**🔍 Auto-Scanning:**
+• Automatically scans URLs posted in chat
+• 5-minute cooldown per URL to prevent spam
+• Instant threat detection and alerts
+• Can be toggled on/off by server moderators
 """
     await ctx.send(help_text)
 
