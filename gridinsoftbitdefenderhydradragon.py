@@ -517,24 +517,29 @@ def process_user_feedback(domain_or_ip: str, feedback_type: str, category: str =
 
 def check_threat_intel(domain_or_ip: str) -> Dict[str, List[str]]:
     """Check domain/IP against threat intelligence lists including user learning"""
-    domain_or_ip = domain_or_ip.lower()
+    domain_or_ip = domain_or_ip.lower().strip()
+
+    # Strip leading 'www.' if it's a domain
+    if domain_or_ip.startswith('www.') and '.' in domain_or_ip[4:]:
+        domain_or_ip = domain_or_ip[4:]
+
     results = {
         'threats': [],
         'whitelist': [],
         'categories': []
     }
-    
+
     # First check user learning data
     user_results = apply_user_learning(domain_or_ip)
     results['threats'].extend(user_results['threats'])
     results['whitelist'].extend(user_results['whitelist'])
     results['categories'].extend(user_results['categories'])
-    
+
     # If user whitelisted, skip other checks
     if user_results['whitelist']:
         return results
-    
-    # Check domain lists (existing code)
+
+    # Check domain lists
     if domain_or_ip in threat_cache['abuse_domains']:
         results['threats'].append('Abuse Domain')
         results['categories'].append('abuse')
@@ -550,8 +555,8 @@ def check_threat_intel(domain_or_ip: str) -> Dict[str, List[str]]:
     if domain_or_ip in threat_cache['mining_domains']:
         results['threats'].append('Mining Domain')
         results['categories'].append('mining')
-    
-    # Check subdomain lists (existing code)
+
+    # Check subdomain lists
     if domain_or_ip in threat_cache['abuse_subdomains']:
         results['threats'].append('Abuse Subdomain')
         results['categories'].append('abuse')
@@ -567,8 +572,8 @@ def check_threat_intel(domain_or_ip: str) -> Dict[str, List[str]]:
     if domain_or_ip in threat_cache['mining_subdomains']:
         results['threats'].append('Mining Subdomain')
         results['categories'].append('mining')
-    
-    # Check IP lists (existing code)
+
+    # Check IP lists
     if domain_or_ip in threat_cache['malware_ips']:
         results['threats'].append('Malware IP')
         results['categories'].append('malware')
@@ -584,13 +589,13 @@ def check_threat_intel(domain_or_ip: str) -> Dict[str, List[str]]:
     if domain_or_ip in threat_cache['bruteforce_ips']:
         results['threats'].append('Brute Force IP')
         results['categories'].append('bruteforce')
-    
-    # Check whitelist (existing code)
+
+    # Check whitelist
     if (domain_or_ip in threat_cache['whitelist_domains'] or 
         domain_or_ip in threat_cache['whitelist_subdomains'] or
         domain_or_ip in threat_cache['whitelist_ips']):
         results['whitelist'].append('Whitelisted')
-    
+
     return results
 
 def extract_review_and_risk(html_text: str) -> Tuple[str, str]:
