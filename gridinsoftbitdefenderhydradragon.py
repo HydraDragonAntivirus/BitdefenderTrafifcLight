@@ -1616,7 +1616,7 @@ async def deep_scan_website(ctx, url: str):
         if buf:
             chunks.append(buf)
 
-        footer = "\n🧠 To report a false positive/negative, react with 👍 or 👎!"
+        footer = "\n🧠 Feedback: Use `!feedback <domain> wrong` for false positives, or `!feedback <domain> block <category>` for missed threats."
         await message.edit(content=f"🔍 **Deep Scan Results for:** `{url}`\n\n{chunks.pop(0)}{footer}")
         for part in chunks:
             await ctx.send(part + footer)
