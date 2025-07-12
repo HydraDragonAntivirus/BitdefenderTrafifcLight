@@ -471,9 +471,9 @@ async def stats(ctx):
     
     await ctx.send(response)
 
-@bot.command(name="help", help="Show available commands")
-async def help_command(ctx):
-    """Discord command: !help"""
+@bot.command(name="commands", help="Show available commands")
+async def commands_list(ctx):
+    """Discord command: !commands"""
     help_text = """
 🤖 **HydraDragon AV Discord Bot Commands:**
 
@@ -485,7 +485,7 @@ async def help_command(ctx):
 
 **📊 Information Commands:**
 • `!stats` - Show threat intelligence statistics
-• `!help` - Show this help message
+• `!commands` - Show this help message
 
 **🛡️ Features:**
 • Multi-engine URL scanning
