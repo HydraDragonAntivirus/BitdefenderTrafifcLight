@@ -286,6 +286,37 @@ def scan_bitdefender(url: str) -> Dict:
     # If we get here, none of the IPs worked
     raise ConnectionError(f"All Nimbus IPs failed: {NIMBUS_IPS}")
 
+def format_bitdefender_status(bitdefender_result: dict) -> str:
+    """Format Bitdefender status with proper classification based on categories and grey status"""
+    if not isinstance(bitdefender_result, dict):
+        return "❌ Error"
+    
+    status = bitdefender_result.get('status', 'Unknown')
+    categories = bitdefender_result.get('categories', [])
+    
+    # Check if it's grey status
+    if status == 'grey':
+        return "⚠️ Harmful website"
+    
+    # Check if there are categories
+    if categories and len(categories) > 0:
+        # If there are categories but no grey, then it's clean
+        return "✅ Clean"
+    
+    # If no categories and no grey, then unknown
+    if not categories or len(categories) == 0:
+        if status == 'clean':
+            return "✅ Clean"
+        elif status == 'malicious':
+            return "🚨 Malicious"
+        elif status == 'suspicious':
+            return "🔶 Suspicious"
+        else:
+            return "❓ Unknown"
+    
+    # Fallback
+    return f"❓ {status.title()}"
+
 def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: Dict, threat_intel: Dict) -> str:
     """Format comprehensive scan results with detailed information"""
     result = f"🔍 **Comprehensive Scan Results for:** `{url}`\n\n"
@@ -323,13 +354,8 @@ def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: D
     # Bitdefender Results
     result += "🛡️ **Bitdefender TrafficLight:**\n"
     if isinstance(bitdefender_result, dict):
-        status = bitdefender_result.get('status', 'Unknown')
-        if status == 'clean':
-            result += "✅ Status: Clean\n"
-        elif status == 'malicious':
-            result += "⚠️ Status: Malicious\n"
-        else:
-            result += f"❓ Status: {status}\n"
+        formatted_status = format_bitdefender_status(bitdefender_result)
+        result += f"Status: {formatted_status}\n"
         
         # Show more detailed information if available
         if 'categories' in bitdefender_result and bitdefender_result['categories']:
@@ -432,8 +458,8 @@ async def bitdefender_scan(ctx, url: str):
         
         response = f"🛡️ **Bitdefender Scan Result for:** `{url}`\n\n"
         if isinstance(result, dict):
-            status = result.get('status', 'Unknown')
-            response += f"**Status:** {status}\n"
+            formatted_status = format_bitdefender_status(result)
+            response += f"**Status:** {formatted_status}\n"
             
             if 'categories' in result and result['categories']:
                 response += f"**Categories:** {', '.join(result['categories'])}\n"
@@ -547,6 +573,12 @@ async def commands_list(ctx):
 • Domains, subdomains, and IPs
 • Malware, phishing, spam, abuse
 • Regular updates from multiple sources
+
+**🔍 Bitdefender Status Classifications:**
+• No categories + No grey = Unknown
+• Grey status = Harmful website  
+• Has categories + No grey = Clean
+• Standard statuses: Clean, Malicious, Suspicious
 """
     await ctx.send(help_text)
 
