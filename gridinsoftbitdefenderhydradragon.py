@@ -16,6 +16,9 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from requests.exceptions import ConnectionError, Timeout, HTTPError
 from typing import Dict, List, Set, Optional, Tuple
+import ipaddress
+import socket
+from urllib.parse import urlparse, urljoin
 
 # Suppress only the InsecureRequestWarning from requests
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -23,10 +26,52 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # === Configuration ===
 BOT_TOKEN = "YOUR_DISCORD_BOT_TOKEN_HERE"
 
-URL_REGEX = re.compile(
-    r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+',
+IP_REGEX = re.compile(
+    r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b|'
+    r'\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b|'
+    r'\b(?:[0-9a-fA-F]{1,4}:){1,7}:|'
+    r'\b(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}\b|'
+    r'\b(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}\b|'
+    r'\b(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}\b|'
+    r'\b(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}\b|'
+    r'\b(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}\b|'
+    r'\b[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}\b|'
+    r'\b:(?::[0-9a-fA-F]{1,4}){1,7}\b|'
+    r'\b::(?:[0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}\b|'
+    r'\b(?:[0-9a-fA-F]{1,4}:){1,7}:\b',
     re.IGNORECASE
 )
+
+# Comprehensive URL patterns for different formats
+URL_PATTERNS = [
+    # Enhanced URL regex with protocol - comprehensive pattern
+    re.compile(
+        r'(?:https?://|ftp://|ftps://|www\.)'
+        r'(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*'
+        r'[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?'
+        r'(?::[0-9]{1,5})?'
+        r'(?:/[^\s\)]*)?',
+        re.IGNORECASE
+    ),
+    
+    # Standard URLs with broader character support
+    re.compile(r'https?://[^\s<>"{}|\\^`\[\]]+', re.IGNORECASE),
+    
+    # URLs with www (without protocol)
+    re.compile(r'www\.[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:/[^\s]*)?', re.IGNORECASE),
+    
+    # Domain-like patterns with word boundaries
+    re.compile(r'\b[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:/[^\s]*)?(?=\s|$|[,.!?;)])', re.IGNORECASE),
+    
+    # Obfuscated URLs (dot replacement patterns)
+    re.compile(r'\b[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\[?\.\]?[a-zA-Z]{2,}(?:/[^\s]*)?', re.IGNORECASE),
+    
+    # Email addresses
+    re.compile(r'mailto:[\w._%+-]+@[\w.-]+\.[A-Za-z]{2,}', re.IGNORECASE),
+    
+    # FTP URLs
+    re.compile(r'ftps?://(?:[-\w.])+(?:[:\d]+)?(?:/(?:[\w/_.])*)?', re.IGNORECASE),
+]
 
 LEARNING_MODE_ENABLED = True  # Set to False to disable learning mode
 LEARNING_DATA_FILE = "learning_data.json"
@@ -56,8 +101,6 @@ pending_feedback = {}  # Store pending feedback requests
 
 AUTO_SCAN_ENABLED = True  # Set to False to disable auto-scanning
 AUTO_SCAN_CHANNELS = []   # Leave empty to scan all channels, or add specific channel IDs
-SCAN_COOLDOWN = {}        # Track scan cooldowns per URL
-COOLDOWN_SECONDS = 300    # 5 minutes cooldown per URL
 
 # GridinSoft Configuration
 GRIDINSOFT_URL = "https://gridinsoft.com/online-virus-scanner/url/"
@@ -118,6 +161,189 @@ ITEM_RE = re.compile(
 )
 
 csv_lock = threading.Lock()
+
+def is_valid_ip(ip_string):
+    """
+    Validate if the string is a valid public IP address (IPv4/IPv6) or CIDR notation.
+    Returns "ipv4", "ipv6" or None if invalid.
+    """
+    def is_bad_network(net):
+        """Check if network is in excluded categories"""
+        if net.version == 4:
+            return (net.is_private or net.is_loopback
+                    or net.is_link_local or net.is_multicast
+                    or net.is_reserved)
+        else:
+            return (net.is_loopback or net.is_link_local
+                    or net.is_multicast or net.is_reserved)
+    
+    try:
+        # Try as network first (CIDR notation)
+        net = ipaddress.ip_network(ip_string, strict=False)
+        if is_bad_network(net):
+            return None
+        return "ipv4" if net.version == 4 else "ipv6"
+    except ValueError:
+        try:
+            # Try as single IP address
+            ip = ipaddress.ip_address(ip_string)
+            if is_bad_network(ip):
+                return None
+            return "ipv4" if ip.version == 4 else "ipv6"
+        except ValueError:
+            return None
+
+def is_valid_url(url_string):
+    """
+    Validate if the string is a valid HTTP/HTTPS URL.
+    Returns True if valid, False otherwise.
+    """
+    try:
+        result = urlparse(url_string)
+        return all([result.scheme, result.netloc]) and result.scheme in ['http', 'https']
+    except Exception:
+        return False
+
+def extract_content_from_website(url: str, timeout: int = 10) -> Dict:
+    """
+    Extract IPs, domains and URLs from a website's HTML content.
+    Returns dictionary with extracted data and metadata.
+    """
+    extracted_data = {
+        'url': url,
+        'status': 'success',
+        'ips': set(),
+        'urls': set(),
+        'domains': set(),
+        'error': None,
+        'response_time': 0,
+        'content_length': 0,
+        'server_ip': None
+    }
+    
+    start_time = time.time()
+    
+    try:
+        # Get server IP
+        try:
+            parsed = urlparse(url)
+            server_ip = socket.gethostbyname(parsed.netloc)
+            if is_valid_ip(server_ip):
+                extracted_data['server_ip'] = server_ip
+                extracted_data['ips'].add(server_ip)
+        except Exception:
+            pass
+        
+        # Fetch website content
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+        }
+        resp = requests.get(url, timeout=timeout, headers=headers, verify=False)
+        resp.raise_for_status()
+        
+        extracted_data['response_time'] = time.time() - start_time
+        extracted_data['content_length'] = len(resp.content)
+        html = resp.text
+        
+        # 1) IPs
+        for ip in IP_REGEX.findall(html):
+            if is_valid_ip(ip):
+                extracted_data['ips'].add(ip)
+        
+        # 2) URLs & domains via all URL_PATTERNS
+        for pattern in URL_PATTERNS:
+            for match in pattern.findall(html):
+                if is_valid_url(match):
+                    extracted_data['urls'].add(match)
+                    dom = urlparse(match).netloc.lower()
+                    if dom:
+                        extracted_data['domains'].add(dom)
+        
+        # 3) Relative links → absolute
+        for attr in ('href', 'src', 'action'):
+            for rel in re.findall(fr'{attr}=["\']([^"\']+)["\']', html, re.IGNORECASE):
+                try:
+                    abs_url = urljoin(url, rel)
+                    if is_valid_url(abs_url):
+                        extracted_data['urls'].add(abs_url)
+                        dom = urlparse(abs_url).netloc.lower()
+                        if dom:
+                            extracted_data['domains'].add(dom)
+                except Exception:
+                    continue
+        
+        # finalize
+        extracted_data['ips'] = list(extracted_data['ips'])
+        extracted_data['urls'] = list(extracted_data['urls'])
+        extracted_data['domains'] = list(extracted_data['domains'])
+        
+    except requests.exceptions.RequestException as e:
+        extracted_data.update({
+            'status': 'error',
+            'error': f"Request error: {e}",
+            'response_time': time.time() - start_time
+        })
+    except Exception as e:
+        extracted_data.update({
+            'status': 'error',
+            'error': f"Unexpected error: {e}",
+            'response_time': time.time() - start_time
+        })
+    
+    return extracted_data
+
+def format_extraction_results(extraction_data: Dict) -> str:
+    """Format website extraction results for Discord"""
+    url = extraction_data['url']
+    status = extraction_data['status']
+    
+    if status == 'error':
+        return f"❌ **Error extracting from** `{url}`\n**Error:** {extraction_data['error']}"
+    
+    result = f"🔍 **Website Content Extraction for:** `{url}`\n\n"
+    
+    # Response info
+    result += f"📊 **Response Info:**\n"
+    result += f"• Response Time: {extraction_data['response_time']:.2f}s\n"
+    result += f"• Content Length: {extraction_data['content_length']} bytes\n"
+    if extraction_data['server_ip']:
+        result += f"• Server IP: {extraction_data['server_ip']}\n"
+    result += "\n"
+    
+    # Extracted IPs
+    ips = extraction_data['ips']
+    if ips:
+        result += f"🌐 **Extracted IPs ({len(ips)}):**\n"
+        for ip in ips[:10]:  # Show first 10 IPs
+            ip_type = is_valid_ip(ip)
+            result += f"• `{ip}` ({ip_type})\n"
+        if len(ips) > 10:
+            result += f"*... and {len(ips) - 10} more IPs*\n"
+        result += "\n"
+    
+    # Extracted URLs
+    urls = extraction_data['urls']
+    if urls:
+        result += f"🔗 **Extracted URLs ({len(urls)}):**\n"
+        for url_item in urls[:5]:  # Show first 5 URLs
+            result += f"• `{url_item}`\n"
+        if len(urls) > 5:
+            result += f"*... and {len(urls) - 5} more URLs*\n"
+        result += "\n"
+    
+    # Extracted domains
+    domains = extraction_data['domains']
+    if domains:
+        result += f"🏷️ **Extracted Domains ({len(domains)}):**\n"
+        for domain in domains[:10]:  # Show first 10 domains
+            result += f"• `{domain}`\n"
+        if len(domains) > 10:
+            result += f"*... and {len(domains) - 10} more domains*\n"
+    
+    if not ips and not urls and not domains:
+        result += "❓ **No IPs, URLs, or domains extracted from website content**"
+    
+    return result
 
 def load_threat_lists():
     """Load all threat intelligence lists into memory"""
@@ -541,26 +767,52 @@ def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: D
     return result
 
 def extract_urls_from_text(text: str) -> List[str]:
-    """Extract URLs from message text"""
-    urls = URL_REGEX.findall(text)
-    # Clean up URLs and remove duplicates
+    """Enhanced URL extraction from message text with unified patterns"""
+    if not text:
+        return []
+    
+    urls = set()  # Use set to avoid duplicates
+    
+    # Apply all URL patterns
+    for pattern in URL_PATTERNS:
+        matches = pattern.findall(text)
+        for match in matches:
+            # Handle tuple matches (from group captures)
+            if isinstance(match, tuple):
+                match = match[0] if match[0] else (match[1] if len(match) > 1 else '')
+            
+            if match:
+                urls.add(match.strip())
+    
+    # Clean up and normalize URLs
     clean_urls = []
     for url in urls:
         url = url.strip()
-        if url and url not in clean_urls:
+        
+        # Skip empty or very short URLs
+        if not url or len(url) < 4:
+            continue
+        
+        # Remove trailing punctuation
+        url = url.rstrip('.,!?;)')
+        
+        # Handle obfuscated URLs (replace [.] with .)
+        url = url.replace('[.]', '.').replace('[dot]', '.')
+        
+        # Add protocol if missing
+        if not url.startswith(('http://', 'https://', 'ftp://', 'ftps://', 'mailto:')):
+            if url.startswith('www.'):
+                url = 'https://' + url
+            elif '.' in url and not url.startswith(('tel:')):
+                # Check if it looks like a domain
+                if re.match(r'^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]\.[a-zA-Z]{2,}', url):
+                    url = 'https://' + url
+        
+        # Validate URL format and add to results
+        if is_valid_url(url) and url not in clean_urls:
             clean_urls.append(url)
+    
     return clean_urls
-
-def is_url_on_cooldown(url: str) -> bool:
-    """Check if URL is on cooldown"""
-    if url in SCAN_COOLDOWN:
-        time_diff = time.time() - SCAN_COOLDOWN[url]
-        return time_diff < COOLDOWN_SECONDS
-    return False
-
-def add_url_to_cooldown(url: str):
-    """Add URL to cooldown tracker"""
-    SCAN_COOLDOWN[url] = time.time()
 
 async def perform_auto_scan(url: str) -> Dict:
     """Perform automatic scan of URL"""
@@ -588,7 +840,7 @@ async def perform_auto_scan(url: str) -> Dict:
         return {'error': str(e)}
 
 def format_auto_scan_results(url: str, scan_results: Dict) -> str:
-    """Format auto-scan results in compact format with feedback option"""
+    """Enhanced format for auto-scan results with more detail"""
     if 'error' in scan_results:
         return f"⚠️ **Auto-scan failed for** `{url}`: {scan_results['error']}"
     
@@ -601,58 +853,75 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
     bitdefender = scan_results.get('bitdefender', {})
     
     threats_found = []
+    threat_details = []
     
     # Check threat intelligence
     if threat_intel.get('threats'):
         threats_found.extend(threat_intel['threats'])
+        threat_details.append(f"Intel: {', '.join(threat_intel['threats'][:2])}")
     
     # Check GridinSoft risk
     risk = gridinsoft.get('risk', 'Unknown')
     if risk != 'Unknown' and not any(safe_word in risk.lower() for safe_word in ['safe', 'clean', 'low']):
         threats_found.append(f"GridinSoft: {risk}")
+        threat_details.append(f"GridinSoft: {risk}")
     
     # Check Bitdefender
     if isinstance(bitdefender, dict):
         if bitdefender.get('domain_grey', False):
-            threats_found.append("Bitdefender: Harmful website")
+            threats_found.append("Bitdefender: Harmful")
+            threat_details.append("Bitdefender: Harmful")
         elif bitdefender.get('status') == 'malicious':
             threats_found.append("Bitdefender: Malicious")
+            threat_details.append("Bitdefender: Malicious")
         elif bitdefender.get('status') == 'suspicious':
             threats_found.append("Bitdefender: Suspicious")
+            threat_details.append("Bitdefender: Suspicious")
     
     # Format response based on findings
     if threats_found:
-        result = f"🚨 **THREAT DETECTED** in URL: `{url}`\n"
-        result += f"**Threats:** {', '.join(threats_found[:3])}"  # Limit to 3 threats
-        if len(threats_found) > 3:
-            result += f" (+{len(threats_found) - 3} more)"
-        result += f"\n*Use `!scan {url}` for detailed analysis*"
+        result = f"🚨 **THREAT DETECTED** 🚨\n"
+        result += f"**URL:** `{url}`\n"
+        result += f"**Domain:** `{domain}`\n"
+        result += f"**Threats:** {', '.join(threat_details[:3])}\n"
+        if len(threat_details) > 3:
+            result += f"*+{len(threat_details) - 3} more threats*\n"
+        result += f"**Action:** ⚠️ **AVOID THIS URL**\n"
+        result += f"*Use `!scan {url}` for detailed analysis*"
         
         # Add feedback option if learning mode is enabled
         if LEARNING_MODE_ENABLED:
-            result += f"\n*Think this is wrong? Use `!feedback {domain} wrong` to report false positive*"
+            result += f"\n*False positive? Use `!feedback {domain} wrong`*"
         
         return result
     elif threat_intel.get('whitelist'):
-        result = f"✅ **Safe URL detected:** `{url}` (Whitelisted)"
+        result = f"✅ **SAFE URL** ✅\n"
+        result += f"**URL:** `{url}`\n"
+        result += f"**Domain:** `{domain}`\n"
+        result += f"**Status:** Whitelisted\n"
+        result += f"**Action:** ✅ **SAFE TO VISIT**"
         
         # Add feedback option if learning mode is enabled
         if LEARNING_MODE_ENABLED:
-            result += f"\n*Think this should be blocked? Use `!feedback {domain} block <category>` to report*"
+            result += f"\n*Should be blocked? Use `!feedback {domain} block <category>`*"
         
         return result
     else:
-        result = f"✅ **URL scanned:** `{url}` - No threats detected"
+        result = f"✅ **URL SCANNED** ✅\n"
+        result += f"**URL:** `{url}`\n"
+        result += f"**Domain:** `{domain}`\n"
+        result += f"**Status:** No threats detected\n"
+        result += f"**Action:** ✅ **APPEARS SAFE**"
         
         # Add feedback option if learning mode is enabled
         if LEARNING_MODE_ENABLED:
-            result += f"\n*Know this is malicious? Use `!feedback {domain} block <category>` to report*"
+            result += f"\n*Know it's malicious? Use `!feedback {domain} block <category>`*"
         
         return result
 
 @bot.event
 async def on_message(message):
-    """Handle incoming messages and auto-scan URLs"""
+    """Enhanced message handler with improved URL scanning"""
     # Don't scan bot's own messages
     if message.author == bot.user:
         return
@@ -667,31 +936,46 @@ async def on_message(message):
         await bot.process_commands(message)
         return
     
-    # Extract URLs from message
+    # Enhanced URL extraction
     urls = extract_urls_from_text(message.content)
     
     if urls:
-        for url in urls:
-            # Check cooldown
-            if is_url_on_cooldown(url):
-                continue
+        # Send initial scanning message
+        scan_message = await message.channel.send(f"🔍 Scanning {len(urls)} URL(s) detected in message...")
+        
+        try:
+            # Process each URL
+            all_results = []
+            for i, url in enumerate(urls):
+                try:
+                    # Update progress
+                    await scan_message.edit(content=f"🔍 Scanning URL {i+1}/{len(urls)}: `{url[:50]}...`")
+                    
+                    # Perform scan
+                    scan_results = await perform_auto_scan(url)
+                    
+                    # Format results
+                    formatted_result = format_auto_scan_results(url, scan_results)
+                    all_results.append(formatted_result)
+                    
+                except Exception as e:
+                    error_result = f"❌ Error scanning `{url}`: {str(e)}"
+                    all_results.append(error_result)
             
-            # Add to cooldown
-            add_url_to_cooldown(url)
+            # Combine all results
+            final_message = "\n\n".join(all_results)
             
-            # Send scanning message
-            scan_message = await message.channel.send(f"🔍 Auto-scanning detected URL...")
-            
-            try:
-                # Perform scan
-                scan_results = await perform_auto_scan(url)
+            # Split message if too long
+            if len(final_message) > 2000:
+                chunks = [final_message[i:i+1900] for i in range(0, len(final_message), 1900)]
+                await scan_message.edit(content=chunks[0])
+                for chunk in chunks[1:]:
+                    await message.channel.send(chunk)
+            else:
+                await scan_message.edit(content=final_message)
                 
-                # Format and send results
-                formatted_result = format_auto_scan_results(url, scan_results)
-                await scan_message.edit(content=formatted_result)
-                
-            except Exception as e:
-                await scan_message.edit(content=f"❌ Auto-scan error for `{url}`: {str(e)}")
+        except Exception as e:
+            await scan_message.edit(content=f"❌ Auto-scan error: {str(e)}")
     
     # Process commands normally
     await bot.process_commands(message)
@@ -1008,45 +1292,94 @@ async def toggle_autoscan(ctx, action: str = "status"):
         await ctx.send("❌ **Auto-scanning disabled** - URLs will not be automatically scanned")
     elif action.lower() == "status":
         status = "✅ Enabled" if AUTO_SCAN_ENABLED else "❌ Disabled"
-        cooldown_count = len(SCAN_COOLDOWN)
-        await ctx.send(f"📊 **Auto-scan Status:** {status}\n🕒 **URLs on cooldown:** {cooldown_count}")
+        await ctx.send(f"📊 **Auto-scan Status:** {status}")
     else:
         await ctx.send("❓ **Usage:** `!autoscan [on/off/status]`")
 
-@bot.command(name="scan", help="Comprehensive scan using GridinSoft, Bitdefender, and threat intelligence")
-async def scan(ctx, url: str):
-    """Discord command: !scan <url>"""
-    message = await ctx.send(f"🔍 Performing comprehensive scan of `{url}`...")
+@bot.command(name="bulk_scan", help="Scan multiple URLs at once")
+async def bulk_scan(ctx, *urls):
+    """Discord command: !bulk_scan <url1> <url2> ... - Scan multiple URLs"""
+    if not urls:
+        await ctx.send("❌ Please provide at least one URL to scan.\n**Usage:** `!bulk_scan <url1> <url2> <url3>`")
+        return
+    
+    if len(urls) > 10:
+        await ctx.send("❌ Maximum 10 URLs per bulk scan to avoid spam.")
+        return
+    
+    message = await ctx.send(f"🔍 Bulk scanning {len(urls)} URLs...")
     
     try:
-        loop = asyncio.get_event_loop()
+        results = []
+        for i, url in enumerate(urls):
+            # Add protocol if missing
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            
+            # Update progress
+            await message.edit(content=f"🔍 Scanning URL {i+1}/{len(urls)}: `{url[:50]}...`")
+            
+            # Perform scan
+            scan_results = await perform_auto_scan(url)
+            formatted_result = format_auto_scan_results(url, scan_results)
+            results.append(formatted_result)
         
-        # Extract domain from URL for threat intel check
-        domain = url.replace('http://', '').replace('https://', '').split('/')[0]
-        
-        # Run all scans concurrently
-        gridinsoft_task = loop.run_in_executor(None, scan_gridinsoft, domain)
-        bitdefender_task = loop.run_in_executor(None, scan_bitdefender, url)
-        threat_intel_task = loop.run_in_executor(None, check_threat_intel, domain)
-        
-        gridinsoft_result = await gridinsoft_task
-        bitdefender_result = await bitdefender_task
-        threat_intel_result = await threat_intel_task
-        
-        # Format and send results
-        formatted_result = format_scan_results(url, gridinsoft_result, bitdefender_result, threat_intel_result)
+        # Combine results
+        final_message = f"📊 **Bulk Scan Complete ({len(urls)} URLs)**\n\n"
+        final_message += "\n\n".join(results)
         
         # Split message if too long
-        if len(formatted_result) > 2000:
-            chunks = [formatted_result[i:i+2000] for i in range(0, len(formatted_result), 2000)]
+        if len(final_message) > 2000:
+            chunks = [final_message[i:i+1900] for i in range(0, len(final_message), 1900)]
             await message.edit(content=chunks[0])
             for chunk in chunks[1:]:
                 await ctx.send(chunk)
         else:
-            await message.edit(content=formatted_result)
+            await message.edit(content=final_message)
             
     except Exception as e:
-        await message.edit(content=f"❌ Error during comprehensive scan: {str(e)}")
+        await message.edit(content=f"❌ Bulk scan error: {str(e)}")
+
+@bot.command(name="scan", help="Comprehensive scan using GridinSoft, Bitdefender, and threat intelligence")
+async def scan_url(ctx, url: str):
+    """Enhanced scan command with better error handling"""
+    # Add protocol if missing
+    if not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+    
+    message = await ctx.send(f"🔍 Scanning `{url}`...")
+    
+    try:
+        # Set a timeout for the entire scan process
+        scan_results = await asyncio.wait_for(perform_auto_scan(url), timeout=60)
+        
+        # Use the enhanced format for detailed results
+        if 'error' in scan_results:
+            await message.edit(content=f"❌ Scan failed: {scan_results['error']}")
+            return
+        
+        # Format comprehensive results
+        domain = url.replace('http://', '').replace('https://', '').split('/')[0]
+        formatted_result = format_scan_results(
+            url, 
+            scan_results.get('gridinsoft', {}), 
+            scan_results.get('bitdefender', {}), 
+            scan_results.get('threat_intel', {})
+        )
+        
+        # Add learning mode feedback option
+        if LEARNING_MODE_ENABLED:
+            formatted_result += f"\n\n🧠 **Feedback Options:**\n"
+            formatted_result += f"• `!feedback {domain} wrong` - Report false positive\n"
+            formatted_result += f"• `!feedback {domain} block <category>` - Report missed threat\n"
+            formatted_result += f"• `!feedback {domain} allow` - Mark as safe"
+        
+        await message.edit(content=formatted_result)
+        
+    except asyncio.TimeoutError:
+        await message.edit(content=f"⏱️ Scan timeout for `{url}` - taking too long to complete")
+    except Exception as e:
+        await message.edit(content=f"❌ Scan error: {str(e)}")
 
 @bot.command(name="gridinsoft", help="Scan URL using GridinSoft only")
 async def gridinsoft_scan(ctx, url: str):
@@ -1172,6 +1505,92 @@ async def stats(ctx):
     
     await ctx.send(response)
 
+@bot.command(name="extract", help="Extract IPs and URLs from a website")
+async def extract_website_content(ctx, url: str):
+    """Discord command: !extract <url>"""
+    if not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+    
+    message = await ctx.send(f"🔍 Extracting content from `{url}`...")
+    
+    try:
+        loop = asyncio.get_event_loop()
+        extraction_data = await loop.run_in_executor(None, extract_content_from_website, url)
+        
+        formatted_result = format_extraction_results(extraction_data)
+        
+        # Split message if too long
+        if len(formatted_result) > 2000:
+            chunks = [formatted_result[i:i+2000] for i in range(0, len(formatted_result), 2000)]
+            await message.edit(content=chunks[0])
+            for chunk in chunks[1:]:
+                await ctx.send(chunk)
+        else:
+            await message.edit(content=formatted_result)
+            
+    except Exception as e:
+        await message.edit(content=f"❌ Error extracting content: {str(e)}")
+
+@bot.command(name="deep_scan", help="Extract content from URL and scan all found IPs/URLs")
+async def deep_scan_website(ctx, url: str):
+    """Discord command: !deep_scan <url> - Extract and scan all content"""
+    if not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+
+    message = await ctx.send(f"🔍 Performing deep scan of `{url}`...")
+
+    try:
+        loop = asyncio.get_event_loop()
+        extraction_data = await loop.run_in_executor(None, extract_content_from_website, url)
+
+        if extraction_data.get('status') == 'error':
+            return await message.edit(content=f"❌ **Deep scan failed:** {extraction_data['error']}")
+
+        # combine and cap at 20 targets (IPs, domains, URLs)
+        all_targets = extraction_data['ips'] + extraction_data['domains'] + extraction_data['urls']
+        total = len(all_targets)
+        capped = all_targets[:20]
+        skipped = total - len(capped)
+
+        results = []
+        scanners = [
+            ('Threat‑Intel', check_threat_intel),
+            ('GridinSoft', scan_gridinsoft),
+            ('Bitdefender', scan_bitdefender),
+        ]
+
+        for tgt in capped:
+            entry = f"**{tgt}**\n"
+            for name, fn in scanners:
+                try:
+                    score, info = await fn(tgt)
+                    entry += f"- {name}: {score} ({info})\n"
+                except Exception as e:
+                    entry += f"- {name}: Error ({e})\n"
+            results.append(entry)
+
+        if skipped:
+            results.append(f"_…and {skipped} more targets not checked._")
+
+        # split on item boundaries to avoid mid‑markdown cuts
+        chunks, buf = [], ""
+        for item in results:
+            if len(buf) + len(item) > 1900:
+                chunks.append(buf)
+                buf = ""
+            buf += item + "\n"
+        if buf:
+            chunks.append(buf)
+
+        footer = "\n🧠 To report a false positive/negative, react with 👍 or 👎!"
+        # send all parts
+        await message.edit(content=f"🔍 **Deep Scan Results for:** `{url}`\n\n{chunks.pop(0)}{footer}")
+        for part in chunks:
+            await ctx.send(part + footer)
+
+    except Exception as e:
+        await message.edit(content=f"❌ Error during deep scan: {e}")
+
 # Update the commands list to include the new command
 @bot.event
 async def on_ready():
@@ -1189,17 +1608,19 @@ async def on_ready():
     
     print("Ready to scan URLs, check threat intelligence, and learn from feedback!")
 
-@bot.command(name="commands", help="Show available commands")
-async def commands_list(ctx):
-    """Discord command: !commands - Updated with learning commands"""
+def update_commands_help():
+    """Updated help text with enhanced scanning features"""
     help_text = """
 🤖 **HydraDragon AV Discord Bot Commands:**
 
-**🔍 Scanning Commands:**
+**🔍 Enhanced Scanning Commands:**
 • `!scan <url>` - Comprehensive scan using all engines
+• `!bulk_scan <url1> <url2> ...` - Scan multiple URLs (max 10)
 • `!gridinsoft <url>` - GridinSoft scan only
 • `!bitdefender <url>` - Bitdefender scan only
 • `!intel <domain/ip>` - Check threat intelligence lists
+• `!extract <url>` - Extract IPs and URLs from website content
+• `!deep_scan <url>` - Extract content and scan all found targets
 
 **📊 Information Commands:**
 • `!stats` - Show threat intelligence statistics
@@ -1212,28 +1633,40 @@ async def commands_list(ctx):
 • `!feedback <domain> <action> [category]` - Provide feedback on results
 • `!learning [stats/enable/disable/reset]` - Control learning mode
 • `!learned [category/all]` - Show learned domains
+• `!feedback_help` - Detailed feedback command help
 
-**🛡️ Features:**
-• Multi-engine URL scanning
-• Threat intelligence correlation
-• Real-time threat detection
-• **Automatic URL scanning in chat**
-• **Machine learning from user feedback**
-• Comprehensive reporting
+**🛡️ Enhanced Features:**
+• **No cooldown** - Scan duplicate URLs
+• **Enhanced URL detection** - Better pattern matching
+• **Bulk scanning** - Multiple URLs at once
+• **Obfuscated URL support** - Detects [.] and [dot] patterns
+• **Real-time progress** - Live scanning updates
+• **Detailed threat analysis** - Comprehensive reports
+• **Machine learning** - Learns from user feedback
+• **Automatic scanning** - Scans URLs in chat messages
 
-**💾 Threat Intelligence Lists:**
+**💾 Threat Intelligence:**
 • 22+ million threat indicators
-• Domains, subdomains, and IPs
-• Malware, phishing, spam, abuse
-• Regular updates from multiple sources
-• **User-trained whitelist/blacklist**
+• Real-time threat correlation
+• User-trained whitelist/blacklist
+• Multiple threat categories
+• Continuous learning system
 
-**🧠 Learning Examples:**
-• `!feedback example.com wrong` - Mark as false positive
-• `!feedback badsite.com block malware` - Add to malware blacklist
-• `!feedback goodsite.com allow` - Add to whitelist
-• `!learning stats` - Show learning statistics
+**🔍 Enhanced Detection:**
+• Standard URLs (http/https)
+• Obfuscated URLs ([.] notation)
+• Domain-only patterns
+• www. prefixed domains
+• Mixed case variations
+• URLs in any message context
 """
+    return help_text
+
+# Replace the existing commands_list function content with:
+@bot.command(name="commands", help="Show available commands")
+async def commands_list(ctx):
+    """Discord command: !commands - Updated with extraction commands"""
+    help_text = update_commands_help()
     await ctx.send(help_text)
 
 if __name__ == "__main__":
