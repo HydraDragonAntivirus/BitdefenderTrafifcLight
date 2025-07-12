@@ -169,39 +169,6 @@ def load_compressed_list_to_cache(filename: str, cache_key: str):
     txt_filename = filename.replace('.7z', '.txt')
     load_list_to_cache(txt_filename, cache_key)
 
-# Add these new imports at the top with other imports
-import json
-from datetime import datetime
-
-# Add these new configuration variables after existing config
-LEARNING_MODE_ENABLED = True  # Set to False to disable learning mode
-LEARNING_DATA_FILE = "learning_data.json"
-PENDING_FEEDBACK_FILE = "pending_feedback.json"
-FEEDBACK_TIMEOUT = 300  # 5 minutes timeout for feedback
-
-# Add new global variables after threat_cache
-learning_data = {
-    'user_feedback': {},
-    'auto_whitelist': set(),
-    'auto_blacklist': {
-        'abuse': set(),
-        'malware': set(),
-        'phishing': set(),
-        'spam': set(),
-        'mining': set()
-    },
-    'feedback_stats': {
-        'total_feedback': 0,
-        'correct_predictions': 0,
-        'false_positives': 0,
-        'false_negatives': 0
-    }
-}
-
-pending_feedback = {}  # Store pending feedback requests
-
-# Add these new functions after existing threat intelligence functions
-
 def load_learning_data():
     """Load learning data from file"""
     global learning_data
@@ -729,42 +696,6 @@ async def on_message(message):
     # Process commands normally
     await bot.process_commands(message)
 
-@bot.event
-async def on_command_error(ctx, error):
-    """Global error handler for all commands"""
-    if isinstance(error, commands.MissingRequiredArgument):
-        command_name = ctx.command.name
-        param_name = error.param.name
-        
-        if command_name == "feedback":
-            if param_name == "domain_or_ip":
-                await ctx.send("❌ **Missing domain/IP!** Usage: `!feedback <domain/ip> <action> [category]`\n\n"
-                              "**Examples:**\n"
-                              "• `!feedback example.com wrong` - Mark as false positive\n"
-                              "• `!feedback badsite.com block malware` - Add to malware blacklist\n"
-                              "• `!feedback goodsite.com allow` - Add to whitelist")
-            elif param_name == "action":
-                await ctx.send("❌ **Missing action!** Usage: `!feedback <domain/ip> <action> [category]`\n\n"
-                              "**Valid actions:** wrong, correct, block, allow, whitelist, blacklist\n\n"
-                              "**Examples:**\n"
-                              "• `!feedback example.com wrong` - Mark as false positive\n"
-                              "• `!feedback badsite.com block malware` - Add to malware blacklist\n"
-                              "• `!feedback goodsite.com allow` - Add to whitelist")
-        else:
-            await ctx.send(f"❌ **Missing required parameter `{param_name}`** for command `{command_name}`")
-    
-    elif isinstance(error, commands.CommandNotFound):
-        # Silently ignore command not found errors
-        pass
-    
-    elif isinstance(error, commands.MissingPermissions):
-        await ctx.send("❌ You don't have permission to use this command.")
-    
-    else:
-        # Log other errors for debugging
-        print(f"Command error: {error}")
-        await ctx.send(f"❌ An error occurred while processing the command: {str(error)}")
-
 @bot.command(name="feedback_help", help="Show detailed help for feedback command")
 async def feedback_help(ctx):
     """Show detailed help for the feedback command"""
@@ -795,26 +726,6 @@ async def feedback_help(ctx):
 **Learning Mode Status:** {'✅ Enabled' if LEARNING_MODE_ENABLED else '❌ Disabled'}
 """
     await ctx.send(help_text)
-
-@feedback.error
-async def feedback_error(ctx, error):
-    """Handle feedback command errors"""
-    if isinstance(error, commands.MissingRequiredArgument):
-        if error.param.name == 'domain_or_ip':
-            await ctx.send("❌ **Missing domain/IP!** Usage: `!feedback <domain/ip> <action> [category]`\n\n"
-                          "**Examples:**\n"
-                          "• `!feedback example.com wrong` - Mark as false positive\n"
-                          "• `!feedback badsite.com block malware` - Add to malware blacklist\n"
-                          "• `!feedback goodsite.com allow` - Add to whitelist")
-        elif error.param.name == 'action':
-            await ctx.send("❌ **Missing action!** Usage: `!feedback <domain/ip> <action> [category]`\n\n"
-                          "**Valid actions:** wrong, correct, block, allow, whitelist, blacklist\n\n"
-                          "**Examples:**\n"
-                          "• `!feedback example.com wrong` - Mark as false positive\n"
-                          "• `!feedback badsite.com block malware` - Add to malware blacklist\n"
-                          "• `!feedback goodsite.com allow` - Add to whitelist")
-    else:
-        await ctx.send(f"❌ **Error with feedback command:** {str(error)}")
 
 @bot.command(name="feedback", help="Provide feedback on scan results")
 async def feedback(ctx, domain_or_ip: str = None, action: str = None, category: str = None):
@@ -860,7 +771,7 @@ async def feedback(ctx, domain_or_ip: str = None, action: str = None, category: 
         await ctx.send(f"❌ Invalid category. Use: {', '.join(valid_categories)}")
         return
     
-    # Process feedback
+    # Process feedback (rest of your existing code remains the same)
     try:
         feedback_type = None
         if action in ['wrong']:
@@ -898,6 +809,62 @@ async def feedback(ctx, domain_or_ip: str = None, action: str = None, category: 
         
     except Exception as e:
         await ctx.send(f"❌ Error processing feedback: {str(e)}")
+
+@feedback.error
+async def feedback_error(ctx, error):
+    """Handle feedback command errors"""
+    if isinstance(error, commands.MissingRequiredArgument):
+        if error.param.name == 'domain_or_ip':
+            await ctx.send("❌ **Missing domain/IP!** Usage: `!feedback <domain/ip> <action> [category]`\n\n"
+                          "**Examples:**\n"
+                          "• `!feedback example.com wrong` - Mark as false positive\n"
+                          "• `!feedback badsite.com block malware` - Add to malware blacklist\n"
+                          "• `!feedback goodsite.com allow` - Add to whitelist")
+        elif error.param.name == 'action':
+            await ctx.send("❌ **Missing action!** Usage: `!feedback <domain/ip> <action> [category]`\n\n"
+                          "**Valid actions:** wrong, correct, block, allow, whitelist, blacklist\n\n"
+                          "**Examples:**\n"
+                          "• `!feedback example.com wrong` - Mark as false positive\n"
+                          "• `!feedback badsite.com block malware` - Add to malware blacklist\n"
+                          "• `!feedback goodsite.com allow` - Add to whitelist")
+    else:
+        await ctx.send(f"❌ **Error with feedback command:** {str(error)}")
+
+@bot.event
+async def on_command_error(ctx, error):
+    """Global error handler for all commands"""
+    if isinstance(error, commands.MissingRequiredArgument):
+        command_name = ctx.command.name
+        param_name = error.param.name
+        
+        if command_name == "feedback":
+            if param_name == "domain_or_ip":
+                await ctx.send("❌ **Missing domain/IP!** Usage: `!feedback <domain/ip> <action> [category]`\n\n"
+                              "**Examples:**\n"
+                              "• `!feedback example.com wrong` - Mark as false positive\n"
+                              "• `!feedback badsite.com block malware` - Add to malware blacklist\n"
+                              "• `!feedback goodsite.com allow` - Add to whitelist")
+            elif param_name == "action":
+                await ctx.send("❌ **Missing action!** Usage: `!feedback <domain/ip> <action> [category]`\n\n"
+                              "**Valid actions:** wrong, correct, block, allow, whitelist, blacklist\n\n"
+                              "**Examples:**\n"
+                              "• `!feedback example.com wrong` - Mark as false positive\n"
+                              "• `!feedback badsite.com block malware` - Add to malware blacklist\n"
+                              "• `!feedback goodsite.com allow` - Add to whitelist")
+        else:
+            await ctx.send(f"❌ **Missing required parameter `{param_name}`** for command `{command_name}`")
+    
+    elif isinstance(error, commands.CommandNotFound):
+        # Silently ignore command not found errors
+        pass
+    
+    elif isinstance(error, commands.MissingPermissions):
+        await ctx.send("❌ You don't have permission to use this command.")
+    
+    else:
+        # Log other errors for debugging
+        print(f"Command error: {error}")
+        await ctx.send(f"❌ An error occurred while processing the command: {str(error)}")
 
 @bot.command(name="learning", help="Show learning mode statistics and controls")
 async def learning_stats(ctx, action: str = "stats"):
@@ -1045,18 +1012,6 @@ async def toggle_autoscan(ctx, action: str = "status"):
         await ctx.send(f"📊 **Auto-scan Status:** {status}\n🕒 **URLs on cooldown:** {cooldown_count}")
     else:
         await ctx.send("❓ **Usage:** `!autoscan [on/off/status]`")
-
-@bot.event
-async def on_ready():
-    """Bot startup event"""
-    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
-    print("Loading threat intelligence lists...")
-    
-    # Load threat intelligence lists in background
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, load_threat_lists)
-    
-    print("Ready to scan URLs and check threat intelligence!")
 
 @bot.command(name="scan", help="Comprehensive scan using GridinSoft, Bitdefender, and threat intelligence")
 async def scan(ctx, url: str):
