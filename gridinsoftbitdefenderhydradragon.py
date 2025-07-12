@@ -916,8 +916,8 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
         result += f"**URL:** `{url}`\n"
         result += f"**Domain:** `{domain}`\n"
         result += f"**Status:** No threats detected\n"
-        result += f"**Action:** ✅ **APPEARS SAFE**"
-        
+        result += f"**Action:** ❓ **STATUS UNKNOWN**"
+    
         # Add feedback option if learning mode is enabled
         if LEARNING_MODE_ENABLED:
             result += f"\n*Know it's malicious? Use `!feedback {domain} block <category>`*"
