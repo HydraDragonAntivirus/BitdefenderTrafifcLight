@@ -287,23 +287,20 @@ def scan_bitdefender(url: str) -> Dict:
     raise ConnectionError(f"All Nimbus IPs failed: {NIMBUS_IPS}")
 
 def format_bitdefender_status(bitdefender_result: dict) -> str:
-    """Format Bitdefender status with proper classification based on categories and grey status"""
+    """Format Bitdefender status with proper classification based on domain_grey and categories"""
     if not isinstance(bitdefender_result, dict):
         return "❌ Error"
     
-    status = bitdefender_result.get('status', 'Unknown')
-    categories = bitdefender_result.get('categories', [])
-    
-    # Check if it's grey status
-    if status == 'grey':
+    # Check for domain_grey field first
+    domain_grey = bitdefender_result.get('domain_grey', False)
+    if domain_grey:
         return "⚠️ Harmful website"
     
-    # Check if there are categories
-    if categories and len(categories) > 0:
-        # If there are categories but no grey, then it's clean
-        return "✅ Clean"
+    # Check categories
+    categories = bitdefender_result.get('categories', [])
+    status = bitdefender_result.get('status', 'Unknown')
     
-    # If no categories and no grey, then unknown
+    # If no categories and no grey, classify based on status or unknown
     if not categories or len(categories) == 0:
         if status == 'clean':
             return "✅ Clean"
@@ -314,8 +311,8 @@ def format_bitdefender_status(bitdefender_result: dict) -> str:
         else:
             return "❓ Unknown"
     
-    # Fallback
-    return f"❓ {status.title()}"
+    # If there are categories but no grey, then it's clean
+    return "✅ Clean"
 
 def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: Dict, threat_intel: Dict) -> str:
     """Format comprehensive scan results with detailed information"""
