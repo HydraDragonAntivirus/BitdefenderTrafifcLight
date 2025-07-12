@@ -1551,7 +1551,11 @@ async def deep_scan_website(ctx, url: str):
 
         # If extraction errored, still scan any IPs/domains we got before the failure
         if extraction_data.get('status') == 'error':
-            partial = extraction_data.get('ips', []) + extraction_data.get('domains', [])
+            # ensure we're concatenating lists, not sets
+            partial_ips = list(extraction_data.get('ips', []))
+            partial_domains = list(extraction_data.get('domains', []))
+            partial = partial_ips + partial_domains
+
             await message.edit(content=(
                 f"⚠️ Deep scan extraction failed part‑way: {extraction_data['error']}\n"
                 "🔄 Scanning whatever targets we did extract…"
