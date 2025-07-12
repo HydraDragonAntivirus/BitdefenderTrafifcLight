@@ -1551,7 +1551,6 @@ async def deep_scan_website(ctx, url: str):
 
         # If extraction errored, still scan any IPs/domains we got before the failure
         if extraction_data.get('status') == 'error':
-            # ensure we're concatenating lists, not sets
             partial_ips = list(extraction_data.get('ips', []))
             partial_domains = list(extraction_data.get('domains', []))
             partial = partial_ips + partial_domains
@@ -1565,7 +1564,11 @@ async def deep_scan_website(ctx, url: str):
                 entry = f"**{tgt}**\n"
                 for name, fn in scanners:
                     try:
-                        score, info = await fn(tgt)
+                        if asyncio.iscoroutinefunction(fn):
+                            score, info = await fn(tgt)
+                        else:
+                            result = await loop.run_in_executor(None, fn, tgt)
+                            score, info = result if isinstance(result, tuple) else (None, result)
                         entry += f"- {name}: {score} ({info})\n"
                     except Exception as e:
                         entry += f"- {name}: Error ({e})\n"
@@ -1585,7 +1588,11 @@ async def deep_scan_website(ctx, url: str):
             entry = f"**{tgt}**\n"
             for name, fn in scanners:
                 try:
-                    score, info = await fn(tgt)
+                    if asyncio.iscoroutinefunction(fn):
+                        score, info = await fn(tgt)
+                    else:
+                        result = await loop.run_in_executor(None, fn, tgt)
+                        score, info = result if isinstance(result, tuple) else (None, result)
                     entry += f"- {name}: {score} ({info})\n"
                 except Exception as e:
                     entry += f"- {name}: Error ({e})\n"
