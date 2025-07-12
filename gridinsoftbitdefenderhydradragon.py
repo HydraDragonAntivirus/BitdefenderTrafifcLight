@@ -330,7 +330,7 @@ def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: D
             result += f"⚠️ Found in: {', '.join(threat_intel['threats'])}\n"
         result += "\n"
     else:
-        result += "📊 **Threat Intelligence:** ✅ Not found in threat lists\n\n"
+        result += "📊 **Threat Intelligence:** ❓ Not found in threat lists\n\n"
     
     # GridinSoft Results
     result += "🛡️ **GridinSoft Scan:**\n"
