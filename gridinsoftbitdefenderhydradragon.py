@@ -3,6 +3,7 @@ from discord.ext import commands
 import asyncio
 import time
 import requests
+import urllib.parse
 import urllib3
 import csv
 import re
@@ -214,59 +215,79 @@ def extract_review_and_risk(html_text: str) -> Tuple[str, str]:
     return review, risk
 
 def scan_gridinsoft(domain: str) -> Dict[str, str]:
-    """Scan domain using GridinSoft"""
+    """Scan domain using GridinSoft with detailed logging"""
     slug = domain.replace(".", "-")
     url = f"{GRIDINSOFT_URL}{slug}"
-
+    
+    print(f"[i] Scanning {domain} via GridinSoft...")
     try:
         resp = requests.get(url, timeout=10)
         if resp.status_code == 404 or "gridinsoft.com/410" in resp.url:
+            print(f"[i] GridinSoft: {domain} not found in database")
             return {"domain": domain, "review": "", "risk": "Unknown"}
         else:
             review, risk = extract_review_and_risk(resp.text)
+            print(f"[✓] GridinSoft scan successful for {domain}: {risk}")
             return {"domain": domain, "review": review, "risk": risk}
     except requests.RequestException as e:
+        print(f"[!] GridinSoft error for {domain}: {e}")
         return {"domain": domain, "review": "", "risk": "Error", "error": str(e)}
 
 def _make_request_with_retries(method, url, **kwargs):
-    """Make HTTP request with retries"""
+    """Make HTTP request with retries and detailed logging"""
     backoff = 1
     for attempt in range(4):
         try:
             return requests.request(method, url, timeout=10, **kwargs)
-        except (ConnectionError, Timeout):
+        except (ConnectionError, Timeout) as e:
             if attempt < 3:
+                print(f"[!] Network error ({e}), retrying in {backoff}s…")
                 time.sleep(backoff)
                 backoff *= 2
             else:
                 raise
 
 def scan_bitdefender(url: str) -> Dict:
-    """Scan URL using Bitdefender TrafficLight API"""
+    """
+    Scan URL using Bitdefender TrafficLight API with detailed logging.
+    Try each known Nimbus IP in turn, sending Host: header so we
+    reach nimbus.bitdefender.net without needing DNS, and
+    disable hostname checking on the cert.
+    """
     params = {"url": url}
     headers = {
         CLIENT_ID_HEADER: CLIENT_ID,
         "Host": CLOUD_HOST,
     }
+    
     for ip in NIMBUS_IPS:
         endpoint = f"https://{ip}{URL_STATUS_PATH}"
+        print(f"[i] Trying Bitdefender IP {ip}…")
         try:
+            # verify=False skips hostname check and cert validity
             resp = _make_request_with_retries(
-                "GET", endpoint,
+                "GET",
+                endpoint,
                 params=params,
                 headers=headers,
                 verify=False
             )
             resp.raise_for_status()
-            return resp.json()
-        except HTTPError:
+            result = resp.json()
+            print(f"[✓] Bitdefender scan successful via {ip}")
+            return result
+        except HTTPError as he:
+            print(f"[!] HTTP error from {ip}: {he} - {he.response.text}")
             continue
-        except Exception:
+        except Exception as e:
+            print(f"[!] Failed at {ip}: {e}")
             continue
+    
+    # If we get here, none of the IPs worked
     raise ConnectionError(f"All Nimbus IPs failed: {NIMBUS_IPS}")
 
 def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: Dict, threat_intel: Dict) -> str:
-    """Format comprehensive scan results"""
+    """Format comprehensive scan results with detailed information"""
     result = f"🔍 **Comprehensive Scan Results for:** `{url}`\n\n"
     
     # Threat Intelligence Results
@@ -310,8 +331,19 @@ def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: D
         else:
             result += f"❓ Status: {status}\n"
         
+        # Show more detailed information if available
         if 'categories' in bitdefender_result and bitdefender_result['categories']:
             result += f"🏷️ Categories: {', '.join(bitdefender_result['categories'])}\n"
+        
+        if 'risk_score' in bitdefender_result:
+            result += f"📊 Risk Score: {bitdefender_result['risk_score']}\n"
+        
+        if 'scan_time' in bitdefender_result:
+            result += f"⏱️ Scan Time: {bitdefender_result['scan_time']}\n"
+            
+        # Show full result for debugging if needed
+        if len(str(bitdefender_result)) < 500:  # Only show if reasonably short
+            result += f"📋 Full Result: `{bitdefender_result}`\n"
     else:
         result += f"❌ Error: {bitdefender_result}\n"
     
@@ -401,13 +433,30 @@ async def bitdefender_scan(ctx, url: str):
         response = f"🛡️ **Bitdefender Scan Result for:** `{url}`\n\n"
         if isinstance(result, dict):
             status = result.get('status', 'Unknown')
-            response += f"Status: {status}\n"
+            response += f"**Status:** {status}\n"
+            
             if 'categories' in result and result['categories']:
-                response += f"Categories: {', '.join(result['categories'])}"
+                response += f"**Categories:** {', '.join(result['categories'])}\n"
+            
+            if 'risk_score' in result:
+                response += f"**Risk Score:** {result['risk_score']}\n"
+            
+            if 'scan_time' in result:
+                response += f"**Scan Time:** {result['scan_time']}\n"
+            
+            # Show full result for detailed analysis
+            response += f"**Full Result:** ```json\n{result}\n```"
         else:
-            response += f"Result: {result}"
+            response += f"**Result:** {result}"
         
-        await message.edit(content=response)
+        # Split message if too long
+        if len(response) > 2000:
+            chunks = [response[i:i+2000] for i in range(0, len(response), 2000)]
+            await message.edit(content=chunks[0])
+            for chunk in chunks[1:]:
+                await ctx.send(chunk)
+        else:
+            await message.edit(content=response)
         
     except Exception as e:
         await message.edit(content=f"❌ Error scanning with Bitdefender: {str(e)}")
