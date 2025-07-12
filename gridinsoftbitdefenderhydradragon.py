@@ -1539,26 +1539,44 @@ async def deep_scan_website(ctx, url: str):
 
     message = await ctx.send(f"🔍 Performing deep scan of `{url}`...")
 
+    scanners = [
+        ('Threat‑Intel', check_threat_intel),
+        ('GridinSoft', scan_gridinsoft),
+        ('Bitdefender', scan_bitdefender),
+    ]
+
     try:
         loop = asyncio.get_event_loop()
         extraction_data = await loop.run_in_executor(None, extract_content_from_website, url)
 
+        # If extraction errored, still scan any IPs/domains we got before the failure
         if extraction_data.get('status') == 'error':
-            return await message.edit(content=f"❌ **Deep scan failed:** {extraction_data['error']}")
+            partial = extraction_data.get('ips', []) + extraction_data.get('domains', [])
+            await message.edit(content=(
+                f"⚠️ Deep scan extraction failed part‑way: {extraction_data['error']}\n"
+                "🔄 Scanning whatever targets we did extract…"
+            ))
 
-        # combine and cap at 20 targets (IPs, domains, URLs)
+            for tgt in partial[:20]:
+                entry = f"**{tgt}**\n"
+                for name, fn in scanners:
+                    try:
+                        score, info = await fn(tgt)
+                        entry += f"- {name}: {score} ({info})\n"
+                    except Exception as e:
+                        entry += f"- {name}: Error ({e})\n"
+                await ctx.send(entry)
+
+            # Then fall back to the regular URL scan
+            return await ctx.invoke(bot.get_command('scan'), url=url)
+
+        # Normal deep-scan flow
         all_targets = extraction_data['ips'] + extraction_data['domains'] + extraction_data['urls']
         total = len(all_targets)
         capped = all_targets[:20]
         skipped = total - len(capped)
 
         results = []
-        scanners = [
-            ('Threat‑Intel', check_threat_intel),
-            ('GridinSoft', scan_gridinsoft),
-            ('Bitdefender', scan_bitdefender),
-        ]
-
         for tgt in capped:
             entry = f"**{tgt}**\n"
             for name, fn in scanners:
@@ -1572,7 +1590,7 @@ async def deep_scan_website(ctx, url: str):
         if skipped:
             results.append(f"_…and {skipped} more targets not checked._")
 
-        # split on item boundaries to avoid mid‑markdown cuts
+        # split on item boundaries
         chunks, buf = [], ""
         for item in results:
             if len(buf) + len(item) > 1900:
@@ -1583,13 +1601,13 @@ async def deep_scan_website(ctx, url: str):
             chunks.append(buf)
 
         footer = "\n🧠 To report a false positive/negative, react with 👍 or 👎!"
-        # send all parts
         await message.edit(content=f"🔍 **Deep Scan Results for:** `{url}`\n\n{chunks.pop(0)}{footer}")
         for part in chunks:
             await ctx.send(part + footer)
 
     except Exception as e:
-        await message.edit(content=f"❌ Error during deep scan: {e}")
+        await message.edit(content=f"❌ Deep scan encountered an error: {e}\n🔄 Falling back to regular scan...")
+        await ctx.invoke(bot.get_command('scan'), url=url)
 
 # Update the commands list to include the new command
 @bot.event
