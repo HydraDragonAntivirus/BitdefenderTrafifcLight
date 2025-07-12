@@ -1175,3 +1175,6 @@ async def commands_list(ctx):
 • `!learning stats` - Show learning statistics
 """
     await ctx.send(help_text)
+
+if __name__ == "__main__":
+    bot.run(BOT_TOKEN)
