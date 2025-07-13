@@ -343,7 +343,7 @@ def format_extraction_results(extraction_data: Dict) -> str:
 
 def load_threat_lists():
     """Load all threat intelligence lists into memory"""
-    print("Loading threat intelligence lists...")
+    print("Loading threat intelligence lists (load threat lists)...")
     
     # Domain lists
     load_list_to_cache('AbuseDomains.txt', 'abuse_domains')
@@ -1647,7 +1647,7 @@ async def deep_scan_website(ctx, url: str):
 async def on_ready():
     """Bot startup event - Updated to include learning data"""
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
-    print("Loading threat intelligence lists...")
+    print("Loading threat intelligence lists (on ready)...")
     
     # Load threat intelligence lists in background
     loop = asyncio.get_event_loop()
