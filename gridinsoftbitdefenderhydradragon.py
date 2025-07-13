@@ -709,24 +709,34 @@ def format_bitdefender_status(bitdefender_result: dict) -> str:
     # If there are categories but no grey, then it's clean
     return "✅ Clean"
 
+# Updated comprehensive scan formatting with false-positive logic including domain in warning
 def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: Dict, threat_intel: Dict) -> str:
     """Format comprehensive scan results with detailed information"""
+    # Extract domain for consistency
+    domain = url.replace('http://', '').replace('https://', '').split('/')[0]
+
     # Header
     result = f"🔍 **Comprehensive Scan Results for:** `{url}`\n\n"
 
-    # Early false-positive check
+    # Early false-positive check: if intel flags threats but any engine reports clean
     intel_flag = bool(threat_intel.get('threats'))
-    gs_risk = gridinsoft_result.get('risk', '').lower() if isinstance(gridinsoft_result, dict) else ''
-    bd_status = bitdefender_result.get('status', '').lower() if isinstance(bitdefender_result, dict) else ''
-    bd_grey = isinstance(bitdefender_result, dict) and bitdefender_result.get('domain_grey', False)
-    if intel_flag and 'clean' in gs_risk and bd_status == 'clean' and not bd_grey:
+    gs_clean = isinstance(gridinsoft_result, dict) and 'clean' in gridinsoft_result.get('risk', '').lower()
+    bd_clean = isinstance(bitdefender_result, dict) and bitdefender_result.get('status', '').lower() == 'clean' and not bitdefender_result.get('domain_grey', False)
+    if intel_flag and (gs_clean or bd_clean):
+        engines = []
+        if gs_clean:
+            engines.append('GridinSoft')
+        if bd_clean:
+            engines.append('Bitdefender')
+        engine_list = ' and '.join(engines) if len(engines) == 2 else engines[0]
         return (
             f"⚠️ **Possible false positive** ⚠️\n"
             f"**URL:** `{url}`\n"
-            f"**Note:** Marked by threat intel but both GridinSoft and Bitdefender report clean."
+            f"**Domain:** `{domain}`\n"
+            f"**Note:** Marked by threat intel but {engine_list} reports clean."
         )
 
-    # Threat Intelligence Results
+     # Threat Intelligence Results
     if threat_intel.get('threats') or threat_intel.get('whitelist'):
         result += "📊 **Threat Intelligence:**\n"
         if threat_intel.get('whitelist'):
@@ -845,30 +855,36 @@ async def perform_auto_scan(url: str) -> Dict:
     except Exception as e:
         return {'error': str(e)}
 
+# Auto-scan formatting with false-positive logic
 def format_auto_scan_results(url: str, scan_results: Dict) -> str:
     """Enhanced format for auto-scan results with more detail"""
     if 'error' in scan_results:
         return f"⚠️ **Auto-scan failed for** `{url}`: {scan_results['error']}"
-    
+     
     # Extract domain from URL
     domain = url.replace('http://', '').replace('https://', '').split('/')[0]
-    
+     
     # Fetch scan sections
     threat_intel = scan_results.get('threat_intel', {})
     gridinsoft   = scan_results.get('gridinsoft', {})
     bitdefender  = scan_results.get('bitdefender', {})
 
-    # Quick false-positive check: intel flagged but engines clean
+    # Quick false-positive check: intel flagged but any engine clean
     intel_flag = bool(threat_intel.get('threats'))
-    gs_risk    = gridinsoft.get('risk', '').lower()
-    bd_status  = bitdefender.get('status', '').lower() if isinstance(bitdefender, dict) else ''
-    bd_grey    = bitdefender.get('domain_grey', False)
-    if intel_flag and all(keyword in gs_risk for keyword in ['clean']) and bd_status == 'clean' and not bd_grey:
+    gs_clean   = isinstance(gridinsoft, dict) and 'clean' in gridinsoft.get('risk', '').lower()
+    bd_clean   = isinstance(bitdefender, dict) and bitdefender.get('status', '').lower() == 'clean' and not bitdefender.get('domain_grey', False)
+    if intel_flag and (gs_clean or bd_clean):
+        engines = []
+        if gs_clean:
+            engines.append('GridinSoft')
+        if bd_clean:
+                engines.append('Bitdefender')
+        engine_list = ' and '.join(engines) if len(engines) == 2 else engines[0]
         return (
             f"⚠️ **Possible false positive** ⚠️\n"
             f"**URL:** `{url}`\n"
             f"**Domain:** `{domain}`\n"
-            f"**Note:** Marked by threat intel but both GridinSoft and Bitdefender report clean."
+            f"**Note:** Marked by threat intel but {engine_list} reports clean."
         )
 
     # Gather detailed threat findings
@@ -879,13 +895,13 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
     if threat_intel.get('threats'):
         threats_found.extend(threat_intel['threats'])
         threat_details.append(f"Intel: {', '.join(threat_intel['threats'][:2])}")
-    
+     
     # Check GridinSoft risk
     risk = gridinsoft.get('risk', 'Unknown')
     if risk != 'Unknown' and not any(safe in risk.lower() for safe in ['safe', 'clean', 'low']):
         threats_found.append(f"GridinSoft: {risk}")
         threat_details.append(f"GridinSoft: {risk}")
-    
+     
     # Check Bitdefender
     if isinstance(bitdefender, dict):
         if bitdefender.get('domain_grey', False):
@@ -897,7 +913,7 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
         elif bitdefender.get('status') == 'suspicious':
             threats_found.append("Bitdefender: Suspicious")
             threat_details.append("Bitdefender: Suspicious")
-    
+     
     # Format response based on findings
     if threats_found:
         result = f"🚨 **THREAT DETECTED** 🚨\n"
@@ -908,37 +924,34 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
             result += f"*+{len(threat_details) - 3} more threats*\n"
         result += f"**Action:** ⚠️ **AVOID THIS URL**\n"
         result += f"*Use `!scan {url}` for detailed analysis*"
-        
-        # Add feedback option if learning mode is enabled
+         
         if LEARNING_MODE_ENABLED:
             result += f"\n*False positive? Use `!feedback {domain} wrong`*"
-        
+         
         return result
-    
+     
     elif threat_intel.get('whitelist'):
         result = f"✅ **SAFE URL** ✅\n"
         result += f"**URL:** `{url}`\n"
         result += f"**Domain:** `{domain}`\n"
         result += f"**Status:** Whitelisted\n"
         result += f"**Action:** ✅ **SAFE TO VISIT**"
-        
-        # Add feedback option if learning mode is enabled
+         
         if LEARNING_MODE_ENABLED:
             result += f"\n*Should be blocked? Use `!feedback {domain} block <category>`*"
-        
+         
         return result
-    
+     
     else:
         result = f"✅ **URL SCANNED** ✅\n"
         result += f"**URL:** `{url}`\n"
         result += f"**Domain:** `{domain}`\n"
         result += f"**Status:** No threats detected\n"
         result += f"**Action:** ❓ **STATUS UNKNOWN**"
-    
-        # Add feedback option if learning mode is enabled
+     
         if LEARNING_MODE_ENABLED:
             result += f"\n*Know it's malicious? Use `!feedback {domain} block <category>`*"
-        
+     
         return result
 
 @bot.event
