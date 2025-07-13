@@ -682,30 +682,20 @@ def scan_bitdefender(url: str) -> Dict:
     raise ConnectionError(f"All Nimbus IPs failed: {NIMBUS_IPS}")
 
 def format_bitdefender_status(bitdefender_result: dict) -> str:
-    """Format Bitdefender status with proper classification based on domain_grey and categories"""
+    """Format Bitdefender status based on user-defined logic: grey is harmful, categories is clean."""
     if not isinstance(bitdefender_result, dict):
-        return "❌ Error"
-    
-    # Check for domain_grey field first
-    domain_grey = bitdefender_result.get('domain_grey', False)
-    if domain_grey:
-        return "⚠️ Harmful website"
-    
-    # Check categories
-    categories = bitdefender_result.get('categories', [])
-    status = bitdefender_result.get('status', 'Unknown')
-    
-    # If no categories and no grey, classify based on status or unknown
-    if not categories or len(categories) == 0:
-        if status == 'clean':
-            return "✅ Clean"
-        elif status == 'suspicious':
-            return "🔶 Suspicious"
-        else:
-            return "❓ Unknown"
-    
-    # If there are categories but no grey, then it's clean
-    return "✅ Clean"
+        return "Error"
+
+    # If 'domain_grey' is true, it's always harmful.
+    if bitdefender_result.get('domain_grey', False):
+        return "Harmful"
+
+    # If categories exist (and not grey), it's clean.
+    if bitdefender_result.get('categories'):
+        return "Clean"
+
+    # Otherwise, it's unknown.
+    return "Unknown"
 
 def extract_urls_from_text(text: str) -> List[str]:
     """Enhanced URL extraction from message text with unified patterns"""
@@ -785,47 +775,38 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
         return f"⚠️ **Auto-scan failed for** `{url}`: {scan_results['error']}"
 
     grid = scan_results.get('gridinsoft', {}) or {}
-    bd = scan_results.get('bitdefender', {}) or {}
+    bd_raw = scan_results.get('bitdefender', {}) or {}
     intel = scan_results.get('threat_intel', {}) or {}
 
+    # GridinSoft Logic
     gs_risk = grid.get('risk', 'Unknown')
     gs_risk_lower = gs_risk.lower()
-    gd_clean_labels = {'gd_clean', 'trusted but verify'}
-    gs_clean_labels = {'clean', 'safe', 'low', 'trusted but verify'}
-    gd_clean = gs_risk_lower in gd_clean_labels
+    gs_clean_labels = {'clean', 'safe', 'low', 'trusted but verify', 'safe & secure'}
     gs_clean = gs_risk_lower in gs_clean_labels
+    gs_bad = not gs_clean and gs_risk_lower != 'unknown'
 
-    bd_status = bd.get('status', 'Unknown')
-    bd_cats = bd.get('categories') or []
-    bd_grey = bd.get('domain_grey', False)
-    bd_clean = bool(bd_cats) and not bd_grey
+    # Bitdefender Logic (Updated)
+    bd_formatted_status = format_bitdefender_status(bd_raw)
+    bd_clean = bd_formatted_status == "Clean"
+    bd_bad = bd_formatted_status == "Harmful"
 
+    # Intel Logic
     intel_threats = intel.get('threats', []) or []
     intel_clean = not intel_threats
 
+    # Verdict Labels
     if gs_risk_lower == 'trusted but verify':
         gs_label = "GridinSoft: Trusted but verify"
-    elif gd_clean:
-        gs_label = "GridinSoft: Clean"
+    elif gs_clean:
+        gs_label = f"GridinSoft: {gs_risk}"
     else:
         gs_label = f"GridinSoft: {gs_risk}"
 
-    if bd_clean:
-        bd_label = "Bitdefender: Clean"
-    elif bd_status.lower() == 'suspicious':
-        bd_label = "Bitdefender: Harmful"
-    else:
-        bd_label = f"Bitdefender: {bd_status}"
-
+    bd_label = f"Bitdefender: {bd_formatted_status}"
     verdicts = [gs_label, bd_label]
 
-    # Define if engines are definitely bad (not unknown)
-    gs_bad = gs_risk_lower not in gs_clean_labels and gs_risk_lower != 'unknown'
-    bd_status_lower = bd_status.lower()
-    bd_bad = bd_status_lower == 'suspicious'
-
-    # FULLY CLEAN CASE: no false positive, just TRUSTED
-    if gd_clean and bd_clean and intel_clean:
+    # Decision Logic
+    if gs_clean and bd_clean and intel_clean:
         msg = (
             f"✅ **TRUSTED** ✅\n"
             f"**URL:** `{url}`\n"
@@ -836,11 +817,7 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
             msg += "*Feedback: `!feedback verify`*\n"
         return msg
 
-    # POSSIBLE FALSE POSITIVE only if intel clean and one engine clean and other definitely bad (not unknown)
-    if intel_clean and (
-        (gs_clean and bd_bad) or
-        (bd_clean and gs_bad)
-    ):
+    if intel_clean and ((gs_clean and bd_bad) or (bd_clean and gs_bad)):
         msg = (
             f"⚠️ **Possible false positive** ⚠️\n"
             f"**URL:** `{url}`\n"
@@ -851,11 +828,11 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
             msg += "*Feedback: `!feedback falsepositive`*\n"
         return msg
 
-    # Otherwise, threat summary
+    # Threat Summary
     threats = []
     if intel_threats:
         threats.append(f"Intel: {', '.join(intel_threats[:2])}")
-    threats += verdicts
+    threats.extend(verdicts) # Use extend to add list items
 
     msg = (
         f"🚨 **THREAT SUMMARY** 🚨\n"
@@ -871,11 +848,11 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
         f"• Risk: {gs_risk}\n"
         + (f"• Review: {grid.get('review')}\n" if grid.get('review') else "")
         + f"\n🛡️ **Bitdefender:**\n"
-        f"• Status: {bd_status}\n"
-        f"• Categories: {', '.join(bd_cats) or 'None'}\n"
-        f"• Greylisted: {bd_grey}\n"
-        + (f"• Risk Score: {bd.get('risk_score')}\n" if 'risk_score' in bd else "")
-        + f"• Raw: `{json.dumps(bd)}`"
+        f"• Status: {bd_formatted_status}\n"
+        f"• Categories: {', '.join(bd_raw.get('categories', [])) or 'None'}\n"
+        f"• Greylisted: {bd_raw.get('domain_grey', False)}\n"
+        + (f"• Risk Score: {bd_raw.get('risk_score')}\n" if 'risk_score' in bd_raw else "")
+        + f"• Raw: `{json.dumps(bd_raw)}`"
     )
     return msg
 
@@ -885,43 +862,35 @@ def format_scan_results(url: str,
                         threat_intel: Dict) -> str:
     domain = url.split('//')[-1].split('/')[0]
 
+    # GridinSoft Logic
     gs_risk = gridinsoft_result.get('risk', 'Unknown')
     gs_risk_lower = gs_risk.lower()
-
-    gd_clean_labels = {'gd_clean', 'trusted but verify'}
-    gs_clean_labels = {'clean', 'safe', 'low', 'trusted but verify'}
-    gd_clean = gs_risk_lower in gd_clean_labels
+    gs_clean_labels = {'clean', 'safe', 'low', 'trusted but verify', 'safe & secure'}
     gs_clean = gs_risk_lower in gs_clean_labels
+    gs_bad = not gs_clean and gs_risk_lower != 'unknown'
 
-    bd_status = bitdefender_result.get('status', 'Unknown')
-    bd_cats = bitdefender_result.get('categories') or []
-    bd_grey = bitdefender_result.get('domain_grey', False)
-    bd_clean = bool(bd_cats) and not bd_grey
+    # Bitdefender Logic (Updated)
+    bd_formatted_status = format_bitdefender_status(bitdefender_result)
+    bd_clean = bd_formatted_status == "Clean"
+    bd_bad = bd_formatted_status == "Harmful"
 
+    # Intel Logic
     intel_threats = threat_intel.get('threats', []) or []
     intel_clean = not intel_threats
 
+    # Verdict Labels
     if gs_risk_lower == 'trusted but verify':
         gs_label = "GridinSoft: Trusted but verify"
-    elif gd_clean:
-        gs_label = "GridinSoft: Clean"
+    elif gs_clean:
+        gs_label = f"GridinSoft: {gs_risk}"
     else:
         gs_label = f"GridinSoft: {gs_risk}"
 
-    if bd_clean:
-        bd_label = "Bitdefender: Clean"
-    elif bd_status.lower() == 'suspicious':
-        bd_label = "Bitdefender: Harmful"
-    else:
-        bd_label = f"Bitdefender: {bd_status}"
-
+    bd_label = f"Bitdefender: {bd_formatted_status}"
     verdicts = [gs_label, bd_label]
 
-    gs_bad = gs_risk_lower not in gs_clean_labels and gs_risk_lower != 'unknown'
-    bd_status_lower = bd_status.lower()
-    bd_bad = bd_status_lower == 'suspicious'
-
-    if gd_clean and bd_clean and intel_clean:
+    # Decision Logic
+    if gs_clean and bd_clean and intel_clean:
         result = (
             f"✅ **TRUSTED** ✅\n"
             f"**URL:** `{url}`\n"
@@ -933,10 +902,7 @@ def format_scan_results(url: str,
             result += "*Feedback: `!feedback verify`*\n"
         return result
 
-    if intel_clean and (
-        (gs_clean and bd_bad) or
-        (bd_clean and gs_bad)
-    ):
+    if intel_clean and ((gs_clean and bd_bad) or (bd_clean and gs_bad)):
         result = (
             f"⚠️ **Possible false positive** ⚠️\n"
             f"**URL:** `{url}`\n"
@@ -948,10 +914,11 @@ def format_scan_results(url: str,
             result += "*Feedback: `!feedback falsepositive`*\n"
         return result
 
+    # Threat Summary
     threats = []
     if intel_threats:
         threats.append(f"Intel: {', '.join(intel_threats)}")
-    threats += verdicts
+    threats.extend(verdicts)
 
     result = (
         f"🚨 **THREAT SUMMARY** 🚨\n"
@@ -971,13 +938,56 @@ def format_scan_results(url: str,
         + f"• Risk: {gs_risk}\n"
         + (f"📝 Review: {gridinsoft_result.get('review')}\n" if gridinsoft_result.get('review') else "")
         + f"\n🛡️ **Bitdefender Scan:**\n"
-        + f"• Status: {bd_status}\n"
-        + f"• Categories: {', '.join(bd_cats) or 'None'}\n"
-        + f"• Greylisted: {bd_grey}\n"
+        + f"• Status: {bd_formatted_status}\n"
+        + f"• Categories: {', '.join(bitdefender_result.get('categories', [])) or 'None'}\n"
+        + f"• Greylisted: {bitdefender_result.get('domain_grey', False)}\n"
         + (f"• Risk Score: {bitdefender_result['risk_score']}\n" if 'risk_score' in bitdefender_result else "")
         + f"• Raw: `{json.dumps(bitdefender_result)}`"
     )
     return result
+
+@bot.command(name="bitdefender", help="Scan URL using Bitdefender only")
+async def bitdefender_scan(ctx, url: str):
+    """Discord command: !bitdefender <url>"""
+    message = await ctx.send(f"🔍 Bitdefender scanning `{url}`...")
+    
+    try:
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, scan_bitdefender, url)
+        
+        response = f"🛡️ **Bitdefender Scan Result for:** `{url}`\n\n"
+        if isinstance(result, dict):
+            # Use the updated formatting function
+            formatted_status = format_bitdefender_status(result)
+            
+            # Display the simple, correct status
+            response += f"**Status:** {formatted_status}\n"
+            
+            if 'categories' in result and result['categories']:
+                response += f"**Categories:** {', '.join(result['categories'])}\n"
+            
+            if 'risk_score' in result:
+                response += f"**Risk Score:** {result['risk_score']}\n"
+            
+            if 'scan_time' in result:
+                response += f"**Scan Time:** {result['scan_time']}\n"
+            
+            # Show full result for detailed analysis, safely formatted as JSON
+            response += f"**Full Result:** ```json\n{json.dumps(result, indent=2)}\n```"
+        else:
+            response += f"**Result:** {result}"
+        
+        # Split message if too long
+        if len(response) > 2000:
+            chunks = [response[i:i+1950] for i in range(0, len(response), 1950)]
+            await message.edit(content=chunks[0])
+            for chunk in chunks[1:]:
+                await ctx.send(chunk)
+        else:
+            await message.edit(content=response)
+        
+    except Exception as e:
+        await message.edit(content=f"❌ Error scanning with Bitdefender: {str(e)}")
 
 @bot.event
 async def on_message(message):
