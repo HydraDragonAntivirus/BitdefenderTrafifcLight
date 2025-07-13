@@ -784,38 +784,31 @@ async def perform_auto_scan(url: str) -> Dict:
 
 def format_auto_scan_results(url: str, scan_results: Dict) -> str:
     if 'error' in scan_results:
-        return f"⚠️ **Auto-scan failed for** `{url}`: {scan_results['error']}"
+        return f"⚠️ **Auto-scan failed for** `{url}`: {scan_results['error']}`"
 
     grid = scan_results.get('gridinsoft', {}) or {}
     bd   = scan_results.get('bitdefender', {}) or {}
     intel = scan_results.get('threat_intel', {}) or {}
 
-    # GridinSoft
+    # GridinSoft verdict
     gs_risk  = grid.get('risk', 'Unknown')
     gs_clean = any(k in gs_risk.lower() for k in ('clean','safe','low'))
-    gs_label = "GridinSoft: Trusted but Verify" if gs_clean else f"GridinSoft: {gs_risk}"
+    gs_label = f"GridinSoft: {'Clean' if gs_clean else gs_risk}"
 
-    # Bitdefender
+    # Bitdefender verdict
     bd_status   = bd.get('status','Unknown')
     bd_cats     = bd.get('categories') or []
     bd_grey     = bd.get('domain_grey', False)
     bd_clean    = bool(bd_cats) and not bd_grey
-    if bd_clean:
-        bd_label = "Bitdefender: Clean but Verify"
-    elif bd_grey:
-        bd_label = "Bitdefender: Suspicious"
-    elif bd_status.lower() == 'malicious':
-        bd_label = "Bitdefender: Malicious"
-    else:
-        bd_label = f"Bitdefender: {bd_status}"
+    bd_label = f"Bitdefender: {'Clean' if bd_clean else ( 'Suspicious' if bd_grey else ('Malicious' if bd_status.lower()=='malicious' else bd_status))}"
 
-    # Intel
+    # Threat Intel
     intel_threats = intel.get('threats', []) or []
     intel_clean   = not intel_threats
 
     verdicts = [gs_label, bd_label]
 
-    # 1) BOTH ENGINES CLEAN & INTEL CLEAN → TRUSTED
+    # 1) BOTH CLEAN & INTEL CLEAN → TRUSTED
     if gs_clean and bd_clean and intel_clean:
         msg = (
             f"✅ **TRUSTED** ✅\n"
@@ -827,7 +820,7 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
             msg += "*Feedback: `!feedback verify`*\n"
         return msg
 
-    # 2) EXACTLY ONE ENGINE CLEAN & INTEL CLEAN → POSSIBLE FALSE POSITIVE
+    # 2) EXACTLY ONE CLEAN & INTEL CLEAN → FALSE POSITIVE
     if intel_clean and ((gs_clean and not bd_clean) or (bd_clean and not gs_clean)):
         msg = (
             f"⚠️ **Possible false positive** ⚠️\n"
@@ -854,7 +847,7 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
     if LEARNING_MODE_ENABLED:
         msg += "*Feedback: `!feedback block <category>`*\n"
 
-    # Always append full details
+    # Append details
     msg += (
         f"\n🛡️ **GridinSoft:**\n"
         f"• Risk: {gs_risk}\n"
@@ -877,29 +870,22 @@ def format_scan_results(url: str,
     # GridinSoft
     gs_risk  = gridinsoft_result.get('risk','Unknown')
     gs_clean = any(k in gs_risk.lower() for k in ('clean','safe','low'))
-    gs_label = "GridinSoft: Trusted but Verify" if gs_clean else f"GridinSoft: {gs_risk}"
+    gs_label = f"GridinSoft: {'Clean' if gs_clean else gs_risk}"
 
     # Bitdefender
     bd_status = bitdefender_result.get('status','Unknown')
     bd_cats   = bitdefender_result.get('categories') or []
     bd_grey   = bitdefender_result.get('domain_grey', False)
     bd_clean  = bool(bd_cats) and not bd_grey
-    if bd_clean:
-        bd_label = "Bitdefender: Clean but Verify"
-    elif bd_grey:
-        bd_label = "Bitdefender: Suspicious"
-    elif bd_status.lower() == 'malicious':
-        bd_label = "Bitdefender: Malicious"
-    else:
-        bd_label = f"Bitdefender: {bd_status}"
+    bd_label = f"Bitdefender: {'Clean' if bd_clean else ( 'Suspicious' if bd_grey else ('Malicious' if bd_status.lower()=='malicious' else bd_status))}"
 
-    # Intel
+    # Threat Intel
     intel_threats = threat_intel.get('threats', []) or []
     intel_clean   = not intel_threats
 
     verdicts = [gs_label, bd_label]
 
-    # 1) BOTH ENGINES CLEAN & INTEL CLEAN → TRUSTED
+    # 1) BOTH CLEAN & INTEL CLEAN → TRUSTED
     if gs_clean and bd_clean and intel_clean:
         result = (
             f"✅ **TRUSTED** ✅\n"
@@ -912,7 +898,7 @@ def format_scan_results(url: str,
             result += "*Feedback: `!feedback verify`*\n"
         return result
 
-    # 2) EXACTLY ONE ENGINE CLEAN & INTEL CLEAN → POSSIBLE FALSE POSITIVE
+    # 2) EXACTLY ONE CLEAN & INTEL CLEAN → FALSE POSITIVE
     if intel_clean and ((gs_clean and not bd_clean) or (bd_clean and not gs_clean)):
         result = (
             f"⚠️ **Possible false positive** ⚠️\n"
