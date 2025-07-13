@@ -782,7 +782,6 @@ async def perform_auto_scan(url: str) -> Dict:
     except Exception as e:
         return {'error': str(e)}
 
-# Auto-scan formatting with false-positive logic
 def format_auto_scan_results(url: str, scan_results: Dict) -> str:
     """Enhanced format for auto-scan results with more detail"""
     if 'error' in scan_results:
@@ -792,15 +791,23 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
     gridinsoft = scan_results.get('gridinsoft', {})
     bitdefender = scan_results.get('bitdefender', {})
 
-    # False positive if at least one clean engine or whitelist contradicts intel or scan results
+    # Determine GridinSoft "clean" status
+    gs_risk = gridinsoft.get('risk', '').lower() if isinstance(gridinsoft, dict) else ''
+    gs_clean = any(x in gs_risk for x in ['clean', 'safe', 'low'])
+
+    # If GridinSoft marks as clean, label as Trusted but require verification
+    if gs_clean and not threat_intel.get('threats'):
+        return (
+            f"✅ **TRUSTED (GridinSoft Clean)** ✅\n"
+            f"**URL:** `{url}`\n"
+            f"**Domain:** `{domain}`\n"
+            f"**Note:** Trusted by GridinSoft, but verify before visiting. ⚠️"
+        )
+
+    # Existing false-positive logic
     intel_flag = bool(threat_intel.get('threats'))
     intel_clean = threat_intel.get('whitelist') or not threat_intel.get('threats')
-    gs_clean = isinstance(gridinsoft, dict) and any(x in gridinsoft.get('risk', '').lower() for x in ['clean', 'safe', 'low'])
-    bd_clean = isinstance(bitdefender, dict) and (
-        (bitdefender.get('status', '').lower() == 'clean' and not bitdefender.get('domain_grey', False)) or
-        ('categories' in bitdefender and bitdefender['categories'])
-    )
-
+    bd_clean = isinstance(bitdefender, dict) and bitdefender.get('status', '').lower() == 'clean' and not bitdefender.get('domain_grey', False)
     if (intel_clean and (not gs_clean or not bd_clean)) or (intel_flag and (gs_clean or bd_clean)):
         return (
             f"⚠️ **Possible false positive** ⚠️\n"
@@ -809,6 +816,7 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
             f"**Note:** Conflict between threat intelligence and scanning engines."
         )
 
+    # Other threat detections
     threats_found = []
     threat_details = []
     if threat_intel.get('threats'):
@@ -829,6 +837,7 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
             threats_found.append("Bitdefender: Suspicious")
             threat_details.append("Bitdefender: Suspicious")
 
+    # Format results based on threats
     if threats_found:
         result = f"🚨 **THREAT DETECTED** 🚨\n"
         result += f"**URL:** `{url}`\n"
@@ -837,7 +846,6 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
         if len(threat_details) > 3:
             result += f"*+{len(threat_details) - 3} more threats*\n"
         result += f"**Action:** ⚠️ **AVOID THIS URL**\n"
-        result += f"*Use `!scan {url}` for detailed analysis*"
         if LEARNING_MODE_ENABLED:
             result += f"\n*False positive? Use `!feedback {domain} wrong`*"
         return result
@@ -861,10 +869,9 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
         return result
 
 # Comprehensive scan formatting with updated false-positive detection
-def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: Dict, threat_intel: Dict) -> str:
+ def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: Dict, threat_intel: Dict) -> str:
     domain = url.replace('http://', '').replace('https://', '').split('/')[0]
-    result = f"🔍 **Comprehensive Scan Results for:** `{url}`\n\n"
-
+    # Determine flags
     intel_flag = bool(threat_intel.get('threats'))
     intel_clean = threat_intel.get('whitelist') or not threat_intel.get('threats')
     gs_clean = isinstance(gridinsoft_result, dict) and any(x in gridinsoft_result.get('risk', '').lower() for x in ['clean', 'safe', 'low'])
@@ -873,6 +880,16 @@ def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: D
         ('categories' in bitdefender_result and bitdefender_result['categories'])
     )
 
+    # Trusted by GridinSoft: no threats intel and GridinSoft reports clean
+    if gs_clean and not intel_flag:
+        return (
+            f"✅ **TRUSTED (GridinSoft Clean)** ✅\n"
+            f"**URL:** `{url}`\n"
+            f"**Domain:** `{domain}`\n"
+            f"**Note:** Trusted by GridinSoft, but verify before visiting. ⚠️"
+        )
+
+    # False-positive detection
     if (intel_clean and (not gs_clean or not bd_clean)) or (intel_flag and (gs_clean or bd_clean)):
         return (
             f"⚠️ **Possible false positive** ⚠️\n"
@@ -881,16 +898,21 @@ def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: D
             f"**Note:** Conflict between threat intelligence and scanning engines."
         )
 
+    # Start building detailed result
+    result = f"🔍 **Comprehensive Scan Results for:** `{url}`\n\n"
+
+    # Threat Intelligence Section
     if threat_intel.get('threats') or threat_intel.get('whitelist'):
         result += "📊 **Threat Intelligence:**\n"
         if threat_intel.get('whitelist'):
-            result += f"✅ {', '.join(threat_intel['whitelist'])}\n"
+            result += f"✅ Whitelisted: {', '.join(threat_intel['whitelist'])}\n"
         if threat_intel.get('threats'):
             result += f"⚠️ Found in: {', '.join(threat_intel['threats'])}\n"
         result += "\n"
     else:
         result += "📊 **Threat Intelligence:** ❓ Not found in threat lists\n\n"
 
+    # GridinSoft Scan Section
     result += "🛡️ **GridinSoft Scan:**\n"
     if isinstance(gridinsoft_result, dict) and gridinsoft_result.get('error'):
         result += f"❌ Error: {gridinsoft_result['error']}\n"
@@ -899,7 +921,7 @@ def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: D
         review = gridinsoft_result.get('review', '')
         if risk == 'Unknown':
             result += "❓ Risk Level: Unknown\n"
-        elif 'safe' in risk.lower() or 'clean' in risk.lower():
+        elif any(x in risk.lower() for x in ['clean', 'safe', 'low']):
             result += f"✅ Risk Level: {risk}\n"
         else:
             result += f"⚠️ Risk Level: {risk}\n"
@@ -907,6 +929,7 @@ def format_scan_results(url: str, gridinsoft_result: Dict, bitdefender_result: D
             result += f"📝 Review: {review}\n"
     result += "\n"
 
+    # Bitdefender TrafficLight Section
     result += "🛡️ **Bitdefender TrafficLight:**\n"
     if isinstance(bitdefender_result, dict):
         formatted_status = format_bitdefender_status(bitdefender_result)
