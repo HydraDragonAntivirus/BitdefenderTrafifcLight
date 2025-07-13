@@ -699,8 +699,6 @@ def format_bitdefender_status(bitdefender_result: dict) -> str:
     if not categories or len(categories) == 0:
         if status == 'clean':
             return "✅ Clean"
-        elif status == 'malicious':
-            return "🚨 Malicious"
         elif status == 'suspicious':
             return "🔶 Suspicious"
         else:
@@ -784,39 +782,44 @@ async def perform_auto_scan(url: str) -> Dict:
 
 def format_auto_scan_results(url: str, scan_results: Dict) -> str:
     if 'error' in scan_results:
-        return f"⚠️ **Auto-scan failed for** `{url}`: {scan_results['error']}`"
+        return f"⚠️ **Auto-scan failed for** `{url}`: {scan_results['error']}"
 
     grid = scan_results.get('gridinsoft', {}) or {}
     bd   = scan_results.get('bitdefender', {}) or {}
     intel = scan_results.get('threat_intel', {}) or {}
 
-    # GridinSoft
-    gs_risk  = grid.get('risk', 'Unknown')
-    gs_clean = any(k in gs_risk.lower() for k in ('clean','safe','low'))
-    # Use "Trusted but Verify" only when both engines and intel are fully clean
+    gs_risk = grid.get('risk', 'Unknown')
+    gs_risk_lower = gs_risk.lower()
+    gd_clean_labels = {'gd_clean', 'trusted but verify'}
+    gs_clean_labels = {'clean', 'safe', 'low', 'trusted but verify'}
+    gd_clean = gs_risk_lower in gd_clean_labels
+    gs_clean = gs_risk_lower in gs_clean_labels
 
-    # Bitdefender
     bd_status = bd.get('status','Unknown')
-    bd_cats   = bd.get('categories') or []
-    bd_grey   = bd.get('domain_grey', False)
-    bd_clean  = bool(bd_cats) and not bd_grey
+    bd_cats = bd.get('categories') or []
+    bd_grey = bd.get('domain_grey', False)
+    bd_clean = bool(bd_cats) and not bd_grey
 
-    # Threat Intel
     intel_threats = intel.get('threats', []) or []
-    intel_clean   = not intel_threats
+    intel_clean = not intel_threats
 
-    # Determine labels
-    if gs_clean and bd_clean and intel_clean:
-        gs_label = "GridinSoft: Trusted but Verify"
-        bd_label = "Bitdefender: Clean but Verify"
+    if gs_risk_lower == 'trusted but verify':
+        gs_label = "GridinSoft: Trusted but verify"
+    elif gd_clean:
+        gs_label = "GridinSoft: Clean"
     else:
         gs_label = f"GridinSoft: {gs_risk}"
+
+    if bd_clean:
+        bd_label = "Bitdefender: Clean"
+    elif bd_status.lower() == 'suspicious':
+        bd_label = "Bitdefender: Harmful"
+    else:
         bd_label = f"Bitdefender: {bd_status}"
 
     verdicts = [gs_label, bd_label]
 
-    # 1) BOTH CLEAN & INTEL CLEAN → TRUSTED
-    if gs_clean and bd_clean and intel_clean:
+    if gd_clean and bd_clean and intel_clean:
         msg = (
             f"✅ **TRUSTED** ✅\n"
             f"**URL:** `{url}`\n"
@@ -827,19 +830,17 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
             msg += "*Feedback: `!feedback verify`*\n"
         return msg
 
-    # 2) EXACTLY ONE CLEAN & INTEL CLEAN → FALSE POSITIVE
     if intel_clean and ((gs_clean and not bd_clean) or (bd_clean and not gs_clean)):
         msg = (
             f"⚠️ **Possible false positive** ⚠️\n"
             f"**URL:** `{url}`\n"
             f"**Verdicts:** {', '.join(verdicts)}\n"
-            f"**Note:** Only one engine clean and no intel threats.\n"
+            f"**Note:** One engine clean, one not, and no intel threats.\n"
         )
         if LEARNING_MODE_ENABLED:
             msg += "*Feedback: `!feedback falsepositive`*\n"
         return msg
 
-    # 3) OTHERWISE → THREAT SUMMARY
     threats = []
     if intel_threats:
         threats.append(f"Intel: {', '.join(intel_threats[:2])}")
@@ -854,7 +855,6 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
     if LEARNING_MODE_ENABLED:
         msg += "*Feedback: `!feedback block <category>`*\n"
 
-    # Append details
     msg += (
         f"\n🛡️ **GridinSoft:**\n"
         f"• Risk: {gs_risk}\n"
@@ -875,32 +875,39 @@ def format_scan_results(url: str,
                         threat_intel: Dict) -> str:
     domain = url.split('//')[-1].split('/')[0]
 
-    # GridinSoft
-    gs_risk  = gridinsoft_result.get('risk','Unknown')
-    gs_clean = any(k in gs_risk.lower() for k in ('clean','safe','low'))
+    gs_risk = gridinsoft_result.get('risk', 'Unknown')
+    gs_risk_lower = gs_risk.lower()
 
-    # Bitdefender
-    bd_status = bitdefender_result.get('status','Unknown')
-    bd_cats   = bitdefender_result.get('categories') or []
-    bd_grey   = bitdefender_result.get('domain_grey', False)
-    bd_clean  = bool(bd_cats) and not bd_grey
+    gd_clean_labels = {'gd_clean', 'trusted but verify'}
+    gs_clean_labels = {'clean', 'safe', 'low', 'trusted but verify'}
+    gd_clean = gs_risk_lower in gd_clean_labels
+    gs_clean = gs_risk_lower in gs_clean_labels
 
-    # Intel
+    bd_status = bitdefender_result.get('status', 'Unknown')
+    bd_cats = bitdefender_result.get('categories') or []
+    bd_grey = bitdefender_result.get('domain_grey', False)
+    bd_clean = bool(bd_cats) and not bd_grey
+
     intel_threats = threat_intel.get('threats', []) or []
-    intel_clean   = not intel_threats
+    intel_clean = not intel_threats
 
-    # Determine labels
-    if gs_clean and bd_clean and intel_clean:
-        gs_label = "GridinSoft: Trusted but Verify"
-        bd_label = "Bitdefender: Clean but Verify"
+    if gs_risk_lower == 'trusted but verify':
+        gs_label = "GridinSoft: Trusted but verify"
+    elif gd_clean:
+        gs_label = "GridinSoft: Clean"
     else:
         gs_label = f"GridinSoft: {gs_risk}"
+
+    if bd_clean:
+        bd_label = "Bitdefender: Clean"
+    elif bd_status.lower() == 'suspicious':
+        bd_label = "Bitdefender: Harmful"
+    else:
         bd_label = f"Bitdefender: {bd_status}"
 
     verdicts = [gs_label, bd_label]
 
-    # 1) BOTH CLEAN & INTEL CLEAN → TRUSTED
-    if gs_clean and bd_clean and intel_clean:
+    if gd_clean and bd_clean and intel_clean:
         result = (
             f"✅ **TRUSTED** ✅\n"
             f"**URL:** `{url}`\n"
@@ -912,20 +919,18 @@ def format_scan_results(url: str,
             result += "*Feedback: `!feedback verify`*\n"
         return result
 
-    # 2) EXACTLY ONE CLEAN & INTEL CLEAN → FALSE POSITIVE
     if intel_clean and ((gs_clean and not bd_clean) or (bd_clean and not gs_clean)):
         result = (
             f"⚠️ **Possible false positive** ⚠️\n"
             f"**URL:** `{url}`\n"
             f"**Domain:** `{domain}`\n"
             f"**Verdicts:** {', '.join(verdicts)}\n"
-            f"**Note:** Only one engine clean and no intel threats.\n"
+            f"**Note:** One engine clean, one not, and no intel threats.\n"
         )
         if LEARNING_MODE_ENABLED:
             result += "*Feedback: `!feedback falsepositive`*\n"
         return result
 
-    # 3) OTHERWISE → THREAT SUMMARY
     threats = []
     if intel_threats:
         threats.append(f"Intel: {', '.join(intel_threats)}")
@@ -941,13 +946,12 @@ def format_scan_results(url: str,
     if LEARNING_MODE_ENABLED:
         result += "*Feedback: `!feedback block <category>`*\n"
 
-    # Full breakdown
     result += (
         f"\n📊 **Threat Intelligence:**\n"
         + (f"✅ Whitelisted: {', '.join(threat_intel['whitelist'])}\n" if threat_intel.get('whitelist') else "")
         + (f"⚠️ Found in: {', '.join(intel_threats)}\n" if intel_threats else "❓ Not found\n")
         + f"\n🛡️ **GridinSoft Scan:**\n"
-        + (f"✅ Risk: {gs_risk}\n" if gs_clean else f"⚠️ Risk: {gs_risk}\n")
+        + f"• Risk: {gs_risk}\n"
         + (f"📝 Review: {gridinsoft_result.get('review')}\n" if gridinsoft_result.get('review') else "")
         + f"\n🛡️ **Bitdefender Scan:**\n"
         + f"• Status: {bd_status}\n"
