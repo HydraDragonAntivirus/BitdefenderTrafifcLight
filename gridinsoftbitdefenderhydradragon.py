@@ -785,7 +785,7 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
         return f"⚠️ **Auto-scan failed for** `{url}`: {scan_results['error']}"
 
     grid = scan_results.get('gridinsoft', {}) or {}
-    bd   = scan_results.get('bitdefender', {}) or {}
+    bd = scan_results.get('bitdefender', {}) or {}
     intel = scan_results.get('threat_intel', {}) or {}
 
     gs_risk = grid.get('risk', 'Unknown')
@@ -795,7 +795,7 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
     gd_clean = gs_risk_lower in gd_clean_labels
     gs_clean = gs_risk_lower in gs_clean_labels
 
-    bd_status = bd.get('status','Unknown')
+    bd_status = bd.get('status', 'Unknown')
     bd_cats = bd.get('categories') or []
     bd_grey = bd.get('domain_grey', False)
     bd_clean = bool(bd_cats) and not bd_grey
@@ -819,6 +819,12 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
 
     verdicts = [gs_label, bd_label]
 
+    # Define if engines are definitely bad (not unknown)
+    gs_bad = gs_risk_lower not in gs_clean_labels and gs_risk_lower != 'unknown'
+    bd_status_lower = bd_status.lower()
+    bd_bad = bd_status_lower == 'suspicious'
+
+    # FULLY CLEAN CASE: no false positive, just TRUSTED
     if gd_clean and bd_clean and intel_clean:
         msg = (
             f"✅ **TRUSTED** ✅\n"
@@ -830,17 +836,22 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
             msg += "*Feedback: `!feedback verify`*\n"
         return msg
 
-    if intel_clean and ((gs_clean and not bd_clean) or (bd_clean and not gs_clean)):
+    # POSSIBLE FALSE POSITIVE only if intel clean and one engine clean and other definitely bad (not unknown)
+    if intel_clean and (
+        (gs_clean and bd_bad) or
+        (bd_clean and gs_bad)
+    ):
         msg = (
             f"⚠️ **Possible false positive** ⚠️\n"
             f"**URL:** `{url}`\n"
             f"**Verdicts:** {', '.join(verdicts)}\n"
-            f"**Note:** One engine clean, one not, and no intel threats.\n"
+            f"**Note:** One engine clean, one suspicious, and no intel threats.\n"
         )
         if LEARNING_MODE_ENABLED:
             msg += "*Feedback: `!feedback falsepositive`*\n"
         return msg
 
+    # Otherwise, threat summary
     threats = []
     if intel_threats:
         threats.append(f"Intel: {', '.join(intel_threats[:2])}")
@@ -867,7 +878,6 @@ def format_auto_scan_results(url: str, scan_results: Dict) -> str:
         + f"• Raw: `{json.dumps(bd)}`"
     )
     return msg
-
 
 def format_scan_results(url: str,
                         gridinsoft_result: Dict,
@@ -907,6 +917,10 @@ def format_scan_results(url: str,
 
     verdicts = [gs_label, bd_label]
 
+    gs_bad = gs_risk_lower not in gs_clean_labels and gs_risk_lower != 'unknown'
+    bd_status_lower = bd_status.lower()
+    bd_bad = bd_status_lower == 'suspicious'
+
     if gd_clean and bd_clean and intel_clean:
         result = (
             f"✅ **TRUSTED** ✅\n"
@@ -919,13 +933,16 @@ def format_scan_results(url: str,
             result += "*Feedback: `!feedback verify`*\n"
         return result
 
-    if intel_clean and ((gs_clean and not bd_clean) or (bd_clean and not gs_clean)):
+    if intel_clean and (
+        (gs_clean and bd_bad) or
+        (bd_clean and gs_bad)
+    ):
         result = (
             f"⚠️ **Possible false positive** ⚠️\n"
             f"**URL:** `{url}`\n"
             f"**Domain:** `{domain}`\n"
             f"**Verdicts:** {', '.join(verdicts)}\n"
-            f"**Note:** One engine clean, one not, and no intel threats.\n"
+            f"**Note:** One engine clean, one suspicious, and no intel threats.\n"
         )
         if LEARNING_MODE_ENABLED:
             result += "*Feedback: `!feedback falsepositive`*\n"
