@@ -946,49 +946,6 @@ def format_scan_results(url: str,
     )
     return result
 
-@bot.command(name="bitdefender", help="Scan URL using Bitdefender only")
-async def bitdefender_scan(ctx, url: str):
-    """Discord command: !bitdefender <url>"""
-    message = await ctx.send(f"🔍 Bitdefender scanning `{url}`...")
-    
-    try:
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, scan_bitdefender, url)
-        
-        response = f"🛡️ **Bitdefender Scan Result for:** `{url}`\n\n"
-        if isinstance(result, dict):
-            # Use the updated formatting function
-            formatted_status = format_bitdefender_status(result)
-            
-            # Display the simple, correct status
-            response += f"**Status:** {formatted_status}\n"
-            
-            if 'categories' in result and result['categories']:
-                response += f"**Categories:** {', '.join(result['categories'])}\n"
-            
-            if 'risk_score' in result:
-                response += f"**Risk Score:** {result['risk_score']}\n"
-            
-            if 'scan_time' in result:
-                response += f"**Scan Time:** {result['scan_time']}\n"
-            
-            # Show full result for detailed analysis, safely formatted as JSON
-            response += f"**Full Result:** ```json\n{json.dumps(result, indent=2)}\n```"
-        else:
-            response += f"**Result:** {result}"
-        
-        # Split message if too long
-        if len(response) > 2000:
-            chunks = [response[i:i+1950] for i in range(0, len(response), 1950)]
-            await message.edit(content=chunks[0])
-            for chunk in chunks[1:]:
-                await ctx.send(chunk)
-        else:
-            await message.edit(content=response)
-        
-    except Exception as e:
-        await message.edit(content=f"❌ Error scanning with Bitdefender: {str(e)}")
-
 @bot.event
 async def on_message(message):
     """Enhanced message handler with improved URL scanning"""
@@ -1487,7 +1444,10 @@ async def bitdefender_scan(ctx, url: str):
         
         response = f"🛡️ **Bitdefender Scan Result for:** `{url}`\n\n"
         if isinstance(result, dict):
+            # Use the updated formatting function
             formatted_status = format_bitdefender_status(result)
+            
+            # Display the simple, correct status
             response += f"**Status:** {formatted_status}\n"
             
             if 'categories' in result and result['categories']:
@@ -1499,14 +1459,14 @@ async def bitdefender_scan(ctx, url: str):
             if 'scan_time' in result:
                 response += f"**Scan Time:** {result['scan_time']}\n"
             
-            # Show full result for detailed analysis
-            response += f"**Full Result:** ```json\n{result}\n```"
+            # Show full result for detailed analysis, safely formatted as JSON
+            response += f"**Full Result:** ```json\n{json.dumps(result, indent=2)}\n```"
         else:
             response += f"**Result:** {result}"
         
         # Split message if too long
         if len(response) > 2000:
-            chunks = [response[i:i+2000] for i in range(0, len(response), 2000)]
+            chunks = [response[i:i+1950] for i in range(0, len(response), 1950)]
             await message.edit(content=chunks[0])
             for chunk in chunks[1:]:
                 await ctx.send(chunk)
