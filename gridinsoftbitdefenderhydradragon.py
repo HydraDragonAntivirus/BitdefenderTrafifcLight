@@ -9,6 +9,7 @@ import html
 import threading
 import os
 import json
+import csv
 from datetime import datetime
 from requests.exceptions import ConnectionError, Timeout, HTTPError
 from typing import Dict, List, Tuple
@@ -342,46 +343,57 @@ def format_extraction_results(extraction_data: Dict) -> str:
     return result
 
 def load_threat_lists():
-    """Load all threat intelligence lists into memory"""
+    """Load all threat intelligence lists into memory from CSV files"""
     print("Loading threat intelligence lists (load threat lists)...")
     
     # Domain lists
-    load_list_to_cache('AbuseDomains.txt', 'abuse_domains')
-    load_list_to_cache('MalwareDomains.txt', 'malware_domains')
-    load_list_to_cache('PhishingDomains.txt', 'phishing_domains')
-    load_list_to_cache('SpamDomains.txt', 'spam_domains')
-    load_list_to_cache('WhiteListDomains.txt', 'whitelist_domains')
-    load_list_to_cache('MiningDomains.txt', 'mining_domains')
+    load_list_to_cache('AbuseDomains.csv', 'abuse_domains')
+    load_list_to_cache('MalwareDomains.csv', 'malware_domains')
+    load_list_to_cache('PhishingDomains.csv', 'phishing_domains')
+    load_list_to_cache('SpamDomains.csv', 'spam_domains')
+    load_list_to_cache('WhiteListDomains.csv', 'whitelist_domains')
+    load_list_to_cache('MiningDomains.csv', 'mining_domains')
     
     # Subdomain lists
-    load_list_to_cache('AbuseSubDomains.txt', 'abuse_subdomains')
-    load_list_to_cache('MalwareSubDomains.txt', 'malware_subdomains')
-    load_list_to_cache('PhishingSubDomains.txt', 'phishing_subdomains')
-    load_list_to_cache('SpamSubDomains.txt', 'spam_subdomains')
-    load_list_to_cache('WhiteListSubDomains.txt', 'whitelist_subdomains')
-    load_list_to_cache('MiningSubDomains.txt', 'mining_subdomains')
+    load_list_to_cache('AbuseSubDomains.csv', 'abuse_subdomains')
+    load_list_to_cache('MalwareSubDomains.csv', 'malware_subdomains')
+    load_list_to_cache('PhishingSubDomains.csv', 'phishing_subdomains')
+    load_list_to_cache('SpamSubDomains.csv', 'spam_subdomains')
+    load_list_to_cache('WhiteListSubDomains.csv', 'whitelist_subdomains')
+    load_list_to_cache('MiningSubDomains.csv', 'mining_subdomains')
     
     # IP lists
-    load_list_to_cache('IPv4Malware.txt', 'malware_ips')
-    load_list_to_cache('IPv4PhishingActive.txt', 'phishing_ips')
-    load_list_to_cache('IPv4Spam.txt', 'spam_ips')
-    load_list_to_cache('IPv4DDoS.txt', 'ddos_ips')
-    load_list_to_cache('IPv4BruteForce.txt', 'bruteforce_ips')
-    load_list_to_cache('IPv4Whitelist.txt', 'whitelist_ips')
+    load_list_to_cache('IPv4Malware.csv', 'malware_ips')
+    load_list_to_cache('IPv4PhishingActive.csv', 'phishing_ips')
+    load_list_to_cache('IPv4Spam.csv', 'spam_ips')
+    load_list_to_cache('IPv4DDoS.csv', 'ddos_ips')
+    load_list_to_cache('IPv4BruteForce.csv', 'bruteforce_ips')
+    load_list_to_cache('IPv4Whitelist.csv', 'whitelist_ips')
     
     print("Threat intelligence lists loaded successfully!")
 
 def load_list_to_cache(filename: str, cache_key: str):
-    """Load a text file into the specified cache set"""
+    """Load a CSV file into the specified cache set, reading the 'address' column"""
     filepath = os.path.join(THREAT_LISTS_DIR, filename)
     if os.path.exists(filepath):
         try:
-            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#'):
-                        threat_cache[cache_key].add(line.lower())
+            with open(filepath, 'r', newline='', encoding='utf-8', errors='ignore') as f:
+                reader = csv.reader(f)
+                # Skip header row
+                try:
+                    next(reader) 
+                except StopIteration:
+                    print(f"Warning: {filename} is empty.")
+                    return
+
+                for row in reader:
+                    if row:  # Ensure row is not empty
+                        address = row[0].strip()
+                        if address and not address.startswith('#'):
+                            threat_cache[cache_key].add(address.lower())
             print(f"Loaded {len(threat_cache[cache_key])} entries from {filename}")
+        except csv.Error as e:
+            print(f"CSV error in {filename} on line {reader.line_num}: {e}")
         except Exception as e:
             print(f"Error loading {filename}: {e}")
 
