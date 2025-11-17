@@ -1,0 +1,30 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComboCleaner.Language", "ComboCleaner.Language\ComboCleaner.Language.csproj", "{39CE3292-2122-4678-B6CF-C39E8AFF605E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{39CE3292-2122-4678-B6CF-C39E8AFF605E}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
+		{39CE3292-2122-4678-B6CF-C39E8AFF605E}.Debug|Any CPU.Build.0 = Debug|AnyCPU
+		{39CE3292-2122-4678-B6CF-C39E8AFF605E}.Debug|x64.ActiveCfg = Debug|AnyCPU
+		{39CE3292-2122-4678-B6CF-C39E8AFF605E}.Debug|x64.Build.0 = Debug|AnyCPU
+		{39CE3292-2122-4678-B6CF-C39E8AFF605E}.Release|Any CPU.ActiveCfg = Release|AnyCPU
+		{39CE3292-2122-4678-B6CF-C39E8AFF605E}.Release|Any CPU.Build.0 = Release|AnyCPU
+		{39CE3292-2122-4678-B6CF-C39E8AFF605E}.Release|x64.ActiveCfg = Release|AnyCPU
+		{39CE3292-2122-4678-B6CF-C39E8AFF605E}.Release|x64.Build.0 = Release|AnyCPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EDFED828-FE04-407E-B2FF-BDE4DEE7B5EA}
+	EndGlobalSection
+EndGlobal
