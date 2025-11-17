@@ -1,0 +1,1606 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AIChatbot" xml:space="preserve">
+    <value>AI Chatbot</value>
+  </data>
+  <data name="ALimitedFunctionalityTrialActivationKeyOrYouCanPurchaseComboCleanerNowAndEnjoyTheBenefitsOfThePremiumVersionInstantly" xml:space="preserve">
+    <value> a limited functionality trial activation key, or you can purchase Combo Cleaner now and enjoy the benefits of the premium version instantly.</value>
+  </data>
+  <data name="ARW_folderAdded_description" xml:space="preserve">
+    <value>You have added a new protected folder - no applications will be able to edit existing or write new files to the added folder. If you want certain applications to be able to edit files or add new files in the Protected Folder please add a Trusted Program.</value>
+  </data>
+  <data name="ARW_folderAdded_title" xml:space="preserve">
+    <value>Important Information</value>
+  </data>
+  <data name="AboutComboCleaner" xml:space="preserve">
+    <value>About Combo Cleaner</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Activate" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="Activation" xml:space="preserve">
+    <value>Activation</value>
+  </data>
+  <data name="ActivationDisabledOnDevice" xml:space="preserve">
+    <value>Activation Disabled On Device</value>
+  </data>
+  <data name="ActivationKeyDisabled" xml:space="preserve">
+    <value>Activation Key Disabled</value>
+  </data>
+  <data name="ActivationKeyNotFound" xml:space="preserve">
+    <value>Activation Key Not Found</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="AddFolder" xml:space="preserve">
+    <value>Add Folder</value>
+  </data>
+  <data name="AddFolderBigFiles" xml:space="preserve">
+    <value>Add Folder to scan for Big Files</value>
+  </data>
+  <data name="AddFolderDuplicateFiles" xml:space="preserve">
+    <value>Add Folder to scan for Duplicate Files</value>
+  </data>
+  <data name="AddPath" xml:space="preserve">
+    <value>Add Path</value>
+  </data>
+  <data name="AddProgram" xml:space="preserve">
+    <value>Add Program</value>
+  </data>
+  <data name="Ads" xml:space="preserve">
+    <value>Ads</value>
+  </data>
+  <data name="Adware" xml:space="preserve">
+    <value>Adware</value>
+  </data>
+  <data name="AiChatDescription" xml:space="preserve">
+    <value>Your personal Al Assistant that can detect scams and advise you on security related issues.</value>
+  </data>
+  <data name="AiChatDropPlaceHolder" xml:space="preserve">
+    <value>Drag and drop an image here</value>
+  </data>
+  <data name="AiChatErrorMessage" xml:space="preserve">
+    <value>At the moment the chat bot is in maintenance mode, please try again later.</value>
+  </data>
+  <data name="AiChatHelloDescription" xml:space="preserve">
+    <value>I can advise you on cyber security questions. You can send me texts or screenshots of emails, SMS messages, etc. and I will determine if it's a scam or not. If you have any concerns on Internet security - send me a message.</value>
+  </data>
+  <data name="AiChatMsgPlaceHolder" xml:space="preserve">
+    <value>Type your message or drag and drop a screenshot here.</value>
+  </data>
+  <data name="AiChatQuotaExceeded" xml:space="preserve">
+    <value>Your daily limit reached</value>
+  </data>
+  <data name="AiChatQuotaExceededFree" xml:space="preserve">
+    <value>You have reached the limit of your daily free chat quota, to continue chatting please upgrade to premium.</value>
+  </data>
+  <data name="AiChatQuotaExceededPremium" xml:space="preserve">
+    <value>You have reached the limit of your daily chat quota</value>
+  </data>
+  <data name="AiChatQuotaExceededTrial" xml:space="preserve">
+    <value>You have reached the limit of your daily trial chat quota, to continue chatting please upgrade to premium.</value>
+  </data>
+  <data name="AiChatSomeThingWentWrong" xml:space="preserve">
+    <value>Something went wrong, please try again later</value>
+  </data>
+  <data name="AllFiles" xml:space="preserve">
+    <value>All Files</value>
+  </data>
+  <data name="AllRightsReserved" xml:space="preserve">
+    <value>All rights reserved.</value>
+  </data>
+  <data name="Analyzing" xml:space="preserve">
+    <value>Analyzing</value>
+  </data>
+  <data name="And" xml:space="preserve">
+    <value> and </value>
+  </data>
+  <data name="AntiMalware" xml:space="preserve">
+    <value>Anti-malware</value>
+  </data>
+  <data name="AntiMalwareDefinitionsDatabaseIsUpToDate" xml:space="preserve">
+    <value>Anti-malware definitions database is up to date.</value>
+  </data>
+  <data name="AntiMalwareDefinitionsDatabaseUpdateIsAvailable" xml:space="preserve">
+    <value>Anti-malware definitions database update is available.</value>
+  </data>
+  <data name="AntiMalwareDefinitionsUpdate" xml:space="preserve">
+    <value>Anti-malware definitions update</value>
+  </data>
+  <data name="AntiMalwareScanner" xml:space="preserve">
+    <value>Anti-Malware Scanner</value>
+  </data>
+  <data name="AntiRansomDescription" xml:space="preserve">
+    <value>Protects files in selected folders from being encrypted by ransomware infections.</value>
+  </data>
+  <data name="AntiRansomware" xml:space="preserve">
+    <value>Anti-ransomware</value>
+  </data>
+  <data name="AntiRansomwareCapital" xml:space="preserve">
+    <value>Anti-Ransomware</value>
+  </data>
+  <data name="AntiRansomwareDescriptionLong" xml:space="preserve">
+    <value>Protect files in selected folders from being changed by ransomware (file-encrypting malware).
+Specify folders that you wish to monitor, and block changes to files contained within them.</value>
+  </data>
+  <data name="AntiRansomwareEngineBlocked" xml:space="preserve">
+    <value>Anti-Ransomware engine blocked access\nto\n{0}\nfor\n{1}</value>
+  </data>
+  <data name="AntiRansomwareProtection" xml:space="preserve">
+    <value>Anti-ransomware protection</value>
+  </data>
+  <data name="AntiRansomwareSettings" xml:space="preserve">
+    <value>Anti-Ransomware settings</value>
+  </data>
+  <data name="AntivirusWithHourlyVirusAndMalwareDefinitionUpdates" xml:space="preserve">
+    <value>Antivirus software with hourly virus and malware definition updates</value>
+  </data>
+  <data name="AntivirusWithQuickFullAndCustomScanCapabilities" xml:space="preserve">
+    <value>Antivirus software with quick, full and
+custom scan capabilities</value>
+  </data>
+  <data name="ApplicationUnnistaller" xml:space="preserve">
+    <value>Application uninstaller</value>
+  </data>
+  <data name="ApplicationUpdate" xml:space="preserve">
+    <value>Application Update</value>
+  </data>
+  <data name="Archbomb" xml:space="preserve">
+    <value>Archbomb</value>
+  </data>
+  <data name="AreYouSure" xml:space="preserve">
+    <value>Are you sure?</value>
+  </data>
+  <data name="AreYouSureYouWantToCancelThisScan" xml:space="preserve">
+    <value>Are you sure you want to cancel this scan?</value>
+  </data>
+  <data name="AreYouSureYouWantToCancelThisScanMalwareFound" xml:space="preserve">
+    <value>{0} threats and {1} suspicious items detected. Are you sure you want to cancel this scan?</value>
+  </data>
+  <data name="AreYouSureYouWantToCancelThisScanOnlyMalwareFound" xml:space="preserve">
+    <value>{0} threat items detected. Are you sure you want to cancel this scan?</value>
+  </data>
+  <data name="AreYouSureYouWantToCancelThisScanOnlySuspiciosFound" xml:space="preserve">
+    <value>{0} suspicious items detected. Are you sure you want to cancel this scan?</value>
+  </data>
+  <data name="AttachAFile" xml:space="preserve">
+    <value>Attach a file (screenshot, crash log, etc… MAX file size {0})</value>
+  </data>
+  <data name="Audio" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="Auto" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="AutoSelect" xml:space="preserve">
+    <value>Auto Select</value>
+  </data>
+  <data name="Automatically" xml:space="preserve">
+    <value>Automatically</value>
+  </data>
+  <data name="Availabale" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="BigFileFinder" xml:space="preserve">
+    <value>Big Files Finder</value>
+  </data>
+  <data name="BigFiles" xml:space="preserve">
+    <value>Big Files</value>
+  </data>
+  <data name="BigFilesScan" xml:space="preserve">
+    <value>Big Files Scan</value>
+  </data>
+  <data name="BigFilesScanFinished" xml:space="preserve">
+    <value>Combo Cleaner has finished scanning your computer for Big Files.</value>
+  </data>
+  <data name="BootSector" xml:space="preserve">
+    <value>BootSector</value>
+  </data>
+  <data name="BrowseFiles" xml:space="preserve">
+    <value>Browse Files</value>
+  </data>
+  <data name="Button" xml:space="preserve">
+    <value> button.</value>
+  </data>
+  <data name="BuyLicenseActivateInstantly" xml:space="preserve">
+    <value>Buy License, Activate Instantly</value>
+  </data>
+  <data name="BuyNow" xml:space="preserve">
+    <value>Purchase Premium</value>
+  </data>
+  <data name="BuyPanelParagraph1" xml:space="preserve">
+    <value>You're currently using the free version of Combo Cleaner. If you have an activation key, click [http://EnterKey|"Enter Activation Key"] to activate it. To upgrade, click [http://Purchase|"Purchase Premium"]. You can also request a 7-day free trial to remove detected threats. For the best experience and full features, we recommend upgrading to the premium version.</value>
+  </data>
+  <data name="BuyPanelParagraph1Trial" xml:space="preserve">
+    <value>You're currently using a trial version of Combo Cleaner. Your trial license will expire {0}. If you have an activation key, click [http://EnterKey|"Enter Activation Key"] to activate it. To upgrade, click [http://Purchase|"Purchase Premium"]. For the best experience and full features, we recommend upgrading to the premium version.</value>
+  </data>
+  <data name="BuyPanelParagraph2" xml:space="preserve">
+    <value>You also have an option to [requestKeyLink|request] a limited functionality trial activation key, or you can purchase Combo Cleaner now and enjoy the benefits of the premium version instantly.</value>
+  </data>
+  <data name="CPUUsage" xml:space="preserve">
+    <value>CPU Usage</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="CancelDefinitionsUpdate" xml:space="preserve">
+    <value>Are you sure you want to cancel checking and downloading update?</value>
+  </data>
+  <data name="CancelOndemandDescription" xml:space="preserve">
+    <value>Canceling this scan may result in undetected threats
+that might harm your computer.</value>
+  </data>
+  <data name="CancelScan" xml:space="preserve">
+    <value>Cancel Scan?</value>
+  </data>
+  <data name="CancelUpdateProcess" xml:space="preserve">
+    <value>Cancel update process?</value>
+  </data>
+  <data name="ChatUploadLimits" xml:space="preserve">
+    <value>JPG, PNG / Max 5 MB</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Check For Updates</value>
+  </data>
+  <data name="ChekingForUpdates" xml:space="preserve">
+    <value>Checking for updates</value>
+  </data>
+  <data name="ChoosePathsThatWillBeScannedDuringAScheduledCustomScan" xml:space="preserve">
+    <value>Choose paths that will be scanned during a scheduled Custom Scan</value>
+  </data>
+  <data name="Clean" xml:space="preserve">
+    <value>Clean</value>
+  </data>
+  <data name="Cleaned" xml:space="preserve">
+    <value>Cleaned</value>
+  </data>
+  <data name="ClearList" xml:space="preserve">
+    <value>Clear List</value>
+  </data>
+  <data name="ClickExitToExit" xml:space="preserve">
+    <value>Click “Exit” to close, or click “Cancel” to stay protected by Combo Cleaner.</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="CombloCleanerIsClosing" xml:space="preserve">
+    <value>Combo Cleaner is closing...</value>
+  </data>
+  <data name="ComboCleaner" xml:space="preserve">
+    <value>Combo Cleaner</value>
+  </data>
+  <data name="ComboCleanerHasBlockedLongMessage" xml:space="preserve">
+    <value>Combo Cleaner has blocked an attempt to access files in a protected folder.</value>
+  </data>
+  <data name="ComboCleanerHelpAmpSupport" xml:space="preserve">
+    <value>Combo Cleaner Help &amp; Support</value>
+  </data>
+  <data name="ContactSupport" xml:space="preserve">
+    <value>Contact Support</value>
+  </data>
+  <data name="Cookie" xml:space="preserve">
+    <value>Cookie</value>
+  </data>
+  <data name="Copyright" xml:space="preserve">
+    <value>Copyright</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="CurrentChat" xml:space="preserve">
+    <value>Current Chat</value>
+  </data>
+  <data name="CustomScan" xml:space="preserve">
+    <value>Custom Scan</value>
+  </data>
+  <data name="CustomScanDescription" xml:space="preserve">
+    <value>Scans specific files or folders according to the parameters that were specified.</value>
+  </data>
+  <data name="CustomScanInProgress" xml:space="preserve">
+    <value>Custom Scan in Progress</value>
+  </data>
+  <data name="Daily" xml:space="preserve">
+    <value>Daily</value>
+  </data>
+  <data name="DailyLimit" xml:space="preserve">
+    <value>Daily Limit: </value>
+  </data>
+  <data name="DailyVirusAndMalwareDefinitionUpdates" xml:space="preserve">
+    <value>Daily virus and malware
+definition updates</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="DateQuarantined" xml:space="preserve">
+    <value>Date quarantined</value>
+  </data>
+  <data name="Day" xml:space="preserve">
+    <value>Day</value>
+  </data>
+  <data name="DayOfMonth" xml:space="preserve">
+    <value>Day of Month</value>
+  </data>
+  <data name="DayOfWeek" xml:space="preserve">
+    <value>Day of Week</value>
+  </data>
+  <data name="DayOneLetter" xml:space="preserve">
+    <value>d</value>
+  </data>
+  <data name="Day_Lowercase" xml:space="preserve">
+    <value>day</value>
+  </data>
+  <data name="Days_Lowercase" xml:space="preserve">
+    <value>days</value>
+  </data>
+  <data name="Deactivate" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="DeactivateMyLicenseOnThisComputer" xml:space="preserve">
+    <value>Deactivate My License on This Computer</value>
+  </data>
+  <data name="Deactivated" xml:space="preserve">
+    <value>Deactivated</value>
+  </data>
+  <data name="DeactivationFailed" xml:space="preserve">
+    <value>Deactivation failed</value>
+  </data>
+  <data name="DeactivationFailedPleaseTryAgainLater" xml:space="preserve">
+    <value>Deactivation failed, please try again later</value>
+  </data>
+  <data name="DebugInformation" xml:space="preserve">
+    <value>Debug information:</value>
+  </data>
+  <data name="DeepScan" xml:space="preserve">
+    <value>Deep scan:</value>
+  </data>
+  <data name="DeepScanDescription" xml:space="preserve">
+    <value>The most thorough scan option, takes more time, but could help uncover hidden malware.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Deleted</value>
+  </data>
+  <data name="DeletedReboot" xml:space="preserve">
+    <value>Deleted(Reboot)</value>
+  </data>
+  <data name="DeselectAll" xml:space="preserve">
+    <value>Deselect All</value>
+  </data>
+  <data name="DetectionHistory" xml:space="preserve">
+    <value>Detection History</value>
+  </data>
+  <data name="Dialer" xml:space="preserve">
+    <value>Dialer</value>
+  </data>
+  <data name="DisableRealtimeScaner" xml:space="preserve">
+    <value>Disable Real-Time Scanner</value>
+  </data>
+  <data name="Disinfected" xml:space="preserve">
+    <value>Disinfected</value>
+  </data>
+  <data name="DiskSpace" xml:space="preserve">
+    <value>Disk Space</value>
+  </data>
+  <data name="DiskTools" xml:space="preserve">
+    <value>Disk Tools</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="DontShowThisAgain" xml:space="preserve">
+    <value>Don't show this again</value>
+  </data>
+  <data name="DownloadingOfSpeed" xml:space="preserve">
+    <value>Downloading {0} of {1} Speed: {2}</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Downloading Update: {0}% completed</value>
+  </data>
+  <data name="DuplicateFilesScan" xml:space="preserve">
+    <value>Duplicate Files Scan</value>
+  </data>
+  <data name="DuplicateFinder" xml:space="preserve">
+    <value>Duplicate Files Finder</value>
+  </data>
+  <data name="Duplicates" xml:space="preserve">
+    <value>Duplicates</value>
+  </data>
+  <data name="DuplicatesDescription" xml:space="preserve">
+    <value>Sort through images, music, videos and personal files to remove duplicate copies.</value>
+  </data>
+  <data name="DuplicatesScreen_FindingDuplicateFiles" xml:space="preserve">
+    <value>Scanning for Duplicate Files...</value>
+  </data>
+  <data name="DuplicatescanFinished" xml:space="preserve">
+    <value>Combo Cleaner has finished scanning your computer for Duplicate Files.</value>
+  </data>
+  <data name="DuplicatesnotFoundDescription" xml:space="preserve">
+    <value>During the scan Combo Cleaner did not detect any duplicate files on your computer.</value>
+  </data>
+  <data name="DuringYourUseComboCleanerHasFreed" xml:space="preserve">
+    <value>During your use, Combo Cleaner has freed</value>
+  </data>
+  <data name="EasilyIdentifyBigFilesDescription" xml:space="preserve">
+    <value>Free up significant disk space by easily identifying big files
+and deciding whether to remove them or not.</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="EmailAddressIsInvalid" xml:space="preserve">
+    <value>Email address is invalid</value>
+  </data>
+  <data name="EmailAddressIsRequired" xml:space="preserve">
+    <value>Email address is required</value>
+  </data>
+  <data name="EmailProtection" xml:space="preserve">
+    <value>Email protection</value>
+  </data>
+  <data name="EmailSecurity" xml:space="preserve">
+    <value>Email Security</value>
+  </data>
+  <data name="EmailsProtectionDescription" xml:space="preserve">
+    <value>Scan emails delivered through SMTP and POP3 protocols. Detects malware in email attachments.</value>
+  </data>
+  <data name="EnterActivationKey" xml:space="preserve">
+    <value>Enter Activation Key</value>
+  </data>
+  <data name="EnterpriseLevelMalwareAndAdwareScanEngines" xml:space="preserve">
+    <value>Enterprise level malware and
+adware scan engines</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="ExitTextRealTimeOn" xml:space="preserve">
+    <value>You have chosen to exit Combo Cleaner. Doing this will disable it's
+real-time threat protection until Combo Cleaner is started again.</value>
+  </data>
+  <data name="ExitTitle" xml:space="preserve">
+    <value>Are you sure that you want to exit Combo Cleaner?</value>
+  </data>
+  <data name="Exiting" xml:space="preserve">
+    <value>Exiting...</value>
+  </data>
+  <data name="Extension" xml:space="preserve">
+    <value>Extension</value>
+  </data>
+  <data name="Extract" xml:space="preserve">
+    <value>Extract</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="FailedToRemoveManyFiles" xml:space="preserve">
+    <value>Failed to remove {0} files</value>
+  </data>
+  <data name="FailedToRemoveOneFile" xml:space="preserve">
+    <value>Failed to remove one file</value>
+  </data>
+  <data name="FastAndProfessionalTechnicalSupportIncludingOneOnOneRemoteConnectionSessions" xml:space="preserve">
+    <value>Fast and professional technical support including one-on-one remote connection sessions</value>
+  </data>
+  <data name="FeatureNotAvailable" xml:space="preserve">
+    <value>Feature Not Available</value>
+  </data>
+  <data name="FeatureNotAvailableDescription" xml:space="preserve">
+    <value>You are using a limited functionality version.
+This feature is available for premium users
+of Combo Cleaner.</value>
+  </data>
+  <data name="File" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="FileLockedContactSupport" xml:space="preserve">
+    <value>Combo Cleaner is unable to remediate this threat as it's locked. Please unlock this file and run a scan again. For more information please contact</value>
+  </data>
+  <data name="FilesScaned" xml:space="preserve">
+    <value>Files scanned </value>
+  </data>
+  <data name="FilesSelected" xml:space="preserve">
+    <value>Files Selected</value>
+  </data>
+  <data name="FilesSelectedNoSize" xml:space="preserve">
+    <value>{0} of {1} files selected</value>
+  </data>
+  <data name="FilesSelectedWithSize" xml:space="preserve">
+    <value>{0} of {1} files selected ({2})</value>
+  </data>
+  <data name="FilesWillBeRemovedPermanently" xml:space="preserve">
+    <value>Files will be removed permanently</value>
+  </data>
+  <data name="FindFilesLargerThen" xml:space="preserve">
+    <value>Find files larger then</value>
+  </data>
+  <data name="FindingBigFiles" xml:space="preserve">
+    <value>Scanning for Big Files...</value>
+  </data>
+  <data name="FirstQuickScanDescription" xml:space="preserve">
+    <value>Combo Cleaner is scanning files in the most vulnerable locations on your system.</value>
+  </data>
+  <data name="FirstQuickScanTitle" xml:space="preserve">
+    <value>Initial Computer Scan in Progress...</value>
+  </data>
+  <data name="FoldersList" xml:space="preserve">
+    <value>Folders list</value>
+  </data>
+  <data name="Fraud" xml:space="preserve">
+    <value>Fraud</value>
+  </data>
+  <data name="Free" xml:space="preserve">
+    <value>Free</value>
+  </data>
+  <data name="Friday" xml:space="preserve">
+    <value>Friday</value>
+  </data>
+  <data name="FullSystemScan" xml:space="preserve">
+    <value>Full System Scan</value>
+  </data>
+  <data name="FullSystemScanDescription" xml:space="preserve">
+    <value>Most comprehensive scan option, checks all files
+on your computer.</value>
+  </data>
+  <data name="FullSystemScanInProgress" xml:space="preserve">
+    <value>Full System Scan in Progress</value>
+  </data>
+  <data name="GameMode" xml:space="preserve">
+    <value>Silent Mode:</value>
+  </data>
+  <data name="GameModeDescription" xml:space="preserve">
+    <value>Turns off all notifications.</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="GeneralSettings" xml:space="preserve">
+    <value>General Settings</value>
+  </data>
+  <data name="GetComboCleanerPremium" xml:space="preserve">
+    <value>Get Combo Cleaner Premium</value>
+  </data>
+  <data name="HiHowCanIhelp" xml:space="preserve">
+    <value>Hi! How can I help you today?</value>
+  </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>Hidden</value>
+  </data>
+  <data name="HourOneLetter" xml:space="preserve">
+    <value>h</value>
+  </data>
+  <data name="HowOften" xml:space="preserve">
+    <value>How often?</value>
+  </data>
+  <data name="IfYouAlreadyHaveAnActivationKeyEnterItByClickingOnThe" xml:space="preserve">
+    <value>. If you already have an activation key, enter it by clicking on the</value>
+  </data>
+  <data name="Ignored" xml:space="preserve">
+    <value>Ignored</value>
+  </data>
+  <data name="Image" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="ImageAnalisis" xml:space="preserve">
+    <value>Image Analysis</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>Images</value>
+  </data>
+  <data name="In15Min" xml:space="preserve">
+    <value>In 15 min</value>
+  </data>
+  <data name="In1Hour" xml:space="preserve">
+    <value>In 1 hour</value>
+  </data>
+  <data name="In30Min" xml:space="preserve">
+    <value>In 30 min</value>
+  </data>
+  <data name="In_Lowercase" xml:space="preserve">
+    <value>in</value>
+  </data>
+  <data name="Inbox" xml:space="preserve">
+    <value>Inbox</value>
+  </data>
+  <data name="IncludeCryptsoft" xml:space="preserve">
+    <value>This product includes cryptographic software written by Eric Young (eay@cryptsoft.com).</value>
+  </data>
+  <data name="InculeOpenSSl" xml:space="preserve">
+    <value>This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/).</value>
+  </data>
+  <data name="Infected" xml:space="preserve">
+    <value>Infected</value>
+  </data>
+  <data name="InfectedFile" xml:space="preserve">
+    <value>Infected File</value>
+  </data>
+  <data name="InstallUpdatesManually" xml:space="preserve">
+    <value>Install updates manually</value>
+  </data>
+  <data name="InstallingUpdates" xml:space="preserve">
+    <value>Installing Updates</value>
+  </data>
+  <data name="IpPort" xml:space="preserve">
+    <value>Ip / Port</value>
+  </data>
+  <data name="Issue" xml:space="preserve">
+    <value>Issue</value>
+  </data>
+  <data name="ItSTimeToUpgrade" xml:space="preserve">
+    <value>It’s Time To Upgrade</value>
+  </data>
+  <data name="ItemsDetected" xml:space="preserve">
+    <value>Items detected</value>
+  </data>
+  <data name="ItemsDetectedDuringLastScan" xml:space="preserve">
+    <value>Items detected during last scan</value>
+  </data>
+  <data name="ItemsScaned" xml:space="preserve">
+    <value>Items scanned</value>
+  </data>
+  <data name="ItemsScanned" xml:space="preserve">
+    <value>Items scanned</value>
+  </data>
+  <data name="LastCheckForAntiMalwareDefinitionsDatabaseUpdatesNever" xml:space="preserve">
+    <value>Last check for Anti-malware definitions database updates: never</value>
+  </data>
+  <data name="LastCheckForUpdates" xml:space="preserve">
+    <value>Last check for updates:</value>
+  </data>
+  <data name="LastThreatScanResults" xml:space="preserve">
+    <value>Last Threat Scan results</value>
+  </data>
+  <data name="LastUpdate" xml:space="preserve">
+    <value>Last successful database update: {0} at {1} </value>
+  </data>
+  <data name="LastVirusScan" xml:space="preserve">
+    <value>Last Virus Scan</value>
+  </data>
+  <data name="LaunchAtStartup" xml:space="preserve">
+    <value>Launch at startup:</value>
+  </data>
+  <data name="LaunchAtStartupDescription" xml:space="preserve">
+    <value>Automatically run Combo Cleaner on every system startup.</value>
+  </data>
+  <data name="LicenseExpired" xml:space="preserve">
+    <value>License expired</value>
+  </data>
+  <data name="LocateAmpRemoveBigFiles" xml:space="preserve">
+    <value>Locate &amp; Remove
+big files</value>
+  </data>
+  <data name="LocateAmpRemoveDuplicateFiles" xml:space="preserve">
+    <value>Locate &amp; Remove
+duplicate files</value>
+  </data>
+  <data name="LocateRemoveDuplicateFiles" xml:space="preserve">
+    <value>Locate &amp; Remove
+duplicate files</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="LockedFile" xml:space="preserve">
+    <value>Locked file</value>
+  </data>
+  <data name="MailBoxElement" xml:space="preserve">
+    <value>MailBoxElement</value>
+  </data>
+  <data name="Malware" xml:space="preserve">
+    <value>Malware</value>
+  </data>
+  <data name="MalwareAndSuspicousFound" xml:space="preserve">
+    <value>Malware and suspicious items were detected during {0} scan. Click on "Resolve found threats" button to view the scan results.</value>
+  </data>
+  <data name="MalwareScanSummary" xml:space="preserve">
+    <value>Malware Scan Summary:</value>
+  </data>
+  <data name="MaximumUploadSizeExceeded" xml:space="preserve">
+    <value>Maximum upload file size of 5 MB exceeded, please upload a smaller image for analysis.</value>
+  </data>
+  <data name="MaybeLater" xml:space="preserve">
+    <value>Maybe Later</value>
+  </data>
+  <data name="Message" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="MessageIsRequired" xml:space="preserve">
+    <value>Message is required</value>
+  </data>
+  <data name="Mime" xml:space="preserve">
+    <value>Mime</value>
+  </data>
+  <data name="Miner" xml:space="preserve">
+    <value>Miner</value>
+  </data>
+  <data name="MinuteOneLetter" xml:space="preserve">
+    <value>m</value>
+  </data>
+  <data name="Monday" xml:space="preserve">
+    <value>Monday</value>
+  </data>
+  <data name="MoneyBackGuarantee" xml:space="preserve">
+    <value>All purchases of Combo Cleaner comes with a 30 days money back guarantee if you are not fully satisfied.</value>
+  </data>
+  <data name="Monthly" xml:space="preserve">
+    <value>Monthly</value>
+  </data>
+  <data name="MoreInformation" xml:space="preserve">
+    <value>More information</value>
+  </data>
+  <data name="MoreThen5GB" xml:space="preserve">
+    <value>More than 5 GB</value>
+  </data>
+  <data name="MoveToQuarantine" xml:space="preserve">
+    <value>Move to Quarantine</value>
+  </data>
+  <data name="Moved" xml:space="preserve">
+    <value>Moved</value>
+  </data>
+  <data name="MovedReboot" xml:space="preserve">
+    <value>Moved(Reboot)</value>
+  </data>
+  <data name="Movie" xml:space="preserve">
+    <value>Movies</value>
+  </data>
+  <data name="MultiMalwareFound" xml:space="preserve">
+    <value>Malware threats were detected during {0} scan. Click on "Resolve found threats" button to view the scan results.</value>
+  </data>
+  <data name="MultiSuspicousFound" xml:space="preserve">
+    <value>Suspicious items were detected during {0} scan. Click on "Resolve found threats" button to view the scan results.</value>
+  </data>
+  <data name="NA" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="NeedAssistanceDropUsAMessage" xml:space="preserve">
+    <value>Need assistance? Drop us a message, describing the problem you're facing and our tech team will get back to you as soon as possible.</value>
+  </data>
+  <data name="NeedHelp" xml:space="preserve">
+    <value>Need help?</value>
+  </data>
+  <data name="NeedsOnlineCheck" xml:space="preserve">
+    <value>Needs Online Check</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>never</value>
+  </data>
+  <data name="NeverCapitalN" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="NeverScanned" xml:space="preserve">
+    <value>Never scanned</value>
+  </data>
+  <data name="NewUpdateAvailable" xml:space="preserve">
+    <value>New Update Available</value>
+  </data>
+  <data name="NewlyConnectedDriveDetected" xml:space="preserve">
+    <value>Combo Cleaner detected a newly connected drive</value>
+  </data>
+  <data name="NewlyConnectedDriveDetectedDescription" xml:space="preserve">
+    <value>Newly connected disk found. We recommend that you scan this disk for malware infections.</value>
+  </data>
+  <data name="NextRestart" xml:space="preserve">
+    <value>Next restart</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="NoBigFilesFoundGoodForYou" xml:space="preserve">
+    <value>No Big Files found! Good For You</value>
+  </data>
+  <data name="NoBigFilesOnYourComputerDescription" xml:space="preserve">
+    <value>During the scan, Combo Cleaner did not detect any big files on your computer.</value>
+  </data>
+  <data name="NoDuplicateFilesFound" xml:space="preserve">
+    <value>No duplicate files found</value>
+  </data>
+  <data name="NoDuplicateFilesFoundGoodForYou" xml:space="preserve">
+    <value>No Duplicate Files found! Good For You</value>
+  </data>
+  <data name="NoFileSelected" xml:space="preserve">
+    <value>No File Selected…</value>
+  </data>
+  <data name="NoMalwareFound" xml:space="preserve">
+    <value>No malware threats were found during {0} scan</value>
+  </data>
+  <data name="NoMalwareFoundDescription" xml:space="preserve">
+    <value>During the scan Combo Cleaner did not detect any malware on your computer. To stay safe, be sure to activate real-time Anti-malware and Web browsing protection.</value>
+  </data>
+  <data name="NoMalwareFoundDescriptionRealtimeOn" xml:space="preserve">
+    <value>During the scan, Combo Cleaner did not detect any malware on your computer. To stay safe, be sure to keep your real-time Anti-malware and Web browsing protection active.</value>
+  </data>
+  <data name="NoMalwareFoundGoodForYou" xml:space="preserve">
+    <value>No malware found! Good for You </value>
+  </data>
+  <data name="NoThanks" xml:space="preserve">
+    <value>No Thanks</value>
+  </data>
+  <data name="Notification" xml:space="preserve">
+    <value>Notification</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="NotifyWhenAnUpdateIsAvailable" xml:space="preserve">
+    <value>Notify when an update is available</value>
+  </data>
+  <data name="NumberOfActivationsExceeded" xml:space="preserve">
+    <value>Number Of Activations Exceeded</value>
+  </data>
+  <data name="OFF" xml:space="preserve">
+    <value>OFF</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="OMBOCLEANER" xml:space="preserve">
+    <value>OMBO CLEANER</value>
+  </data>
+  <data name="ON" xml:space="preserve">
+    <value>ON</value>
+  </data>
+  <data name="OfDiskSpaceAndEliminated" xml:space="preserve">
+    <value>of disk space and eliminated</value>
+  </data>
+  <data name="OnDemandInternetConnectionLost" xml:space="preserve">
+    <value>No Internet connection!</value>
+  </data>
+  <data name="OnDemandInternetConnectionLostDescription" xml:space="preserve">
+    <value>No Internet connection available. Please check your network.</value>
+  </data>
+  <data name="Once" xml:space="preserve">
+    <value>Once</value>
+  </data>
+  <data name="OndemandRemovingSelected" xml:space="preserve">
+    <value>Fixing selected items, please wait...</value>
+  </data>
+  <data name="OpenComboCleaner" xml:space="preserve">
+    <value>Open Combo Cleaner</value>
+  </data>
+  <data name="OpenQuarantine" xml:space="preserve">
+    <value>Open Quarantine</value>
+  </data>
+  <data name="Or" xml:space="preserve">
+    <value>or</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="PREMIUMFEATURE" xml:space="preserve">
+    <value>PREMIUM FEATURE</value>
+  </data>
+  <data name="PUP" xml:space="preserve">
+    <value>PUP</value>
+  </data>
+  <data name="PUPLong" xml:space="preserve">
+    <value>Potentially Unwanted Program</value>
+  </data>
+  <data name="PasswordProtected" xml:space="preserve">
+    <value>PasswordProtected</value>
+  </data>
+  <data name="PathsToScanInCustomScan" xml:space="preserve">
+    <value>Paths to scan in Custom Scan</value>
+  </data>
+  <data name="Paused" xml:space="preserve">
+    <value>(Paused)</value>
+  </data>
+  <data name="Permanently" xml:space="preserve">
+    <value>Permanently</value>
+  </data>
+  <data name="PersonalSecurityAssistant" xml:space="preserve">
+    <value>Personal Security Assistant</value>
+  </data>
+  <data name="Phishing" xml:space="preserve">
+    <value>Phishing</value>
+  </data>
+  <data name="PleaseEnterValidActivationKey" xml:space="preserve">
+    <value>Please enter valid Activation Key</value>
+  </data>
+  <data name="PleaseEnterYourActivationKeyHere" xml:space="preserve">
+    <value>Please enter your Activation Key here:</value>
+  </data>
+  <data name="PremiumFeatureNormalCase" xml:space="preserve">
+    <value>Premium Feature</value>
+  </data>
+  <data name="Prev7Days" xml:space="preserve">
+    <value>Previous 7 Days</value>
+  </data>
+  <data name="PrivacyPolicy" xml:space="preserve">
+    <value>Privacy Policy:</value>
+  </data>
+  <data name="PrivacyScanner" xml:space="preserve">
+    <value>Privacy scanner</value>
+  </data>
+  <data name="Process" xml:space="preserve">
+    <value>Process</value>
+  </data>
+  <data name="Program" xml:space="preserve">
+    <value>Program</value>
+  </data>
+  <data name="ProtectedFolders" xml:space="preserve">
+    <value>Protected Folders:</value>
+  </data>
+  <data name="Pua" xml:space="preserve">
+    <value>PUA</value>
+  </data>
+  <data name="PurchaseAPremiumVersion" xml:space="preserve">
+    <value>purchase a premium version</value>
+  </data>
+  <data name="Quarantine" xml:space="preserve">
+    <value>Quarantine</value>
+  </data>
+  <data name="QuarantineDescription" xml:space="preserve">
+    <value>List of malicious files that were quarantined (isolated to prevent contamination of your computer) during the operation of Combo Cleaner.</value>
+  </data>
+  <data name="Quarantined" xml:space="preserve">
+    <value>Quarantined</value>
+  </data>
+  <data name="QuickScan" xml:space="preserve">
+    <value>Quick Scan</value>
+  </data>
+  <data name="QuickScanDescription" xml:space="preserve">
+    <value>Scans commonly infected areas such as downloads, applications, etc...</value>
+  </data>
+  <data name="QuickScanInProgress" xml:space="preserve">
+    <value>Quick Scan in Progress</value>
+  </data>
+  <data name="RAM" xml:space="preserve">
+    <value>RAM</value>
+  </data>
+  <data name="RealTimeAntiMalwareProtection" xml:space="preserve">
+    <value>Real-time anti-malware protection</value>
+  </data>
+  <data name="RealTimeDescription" xml:space="preserve">
+    <value>Real-time malware scanner, halts potential infections in the early stages.</value>
+  </data>
+  <data name="RealTimeProtection" xml:space="preserve">
+    <value>Real-Time Protection</value>
+  </data>
+  <data name="RebootNeededLongText" xml:space="preserve">
+    <value>To finish removing detected threats, your computer needs to be restarted. Do you want to restart your computer now? (Recommended).</value>
+  </data>
+  <data name="RebootRequired" xml:space="preserve">
+    <value>Reboot Required</value>
+  </data>
+  <data name="RegistryKey" xml:space="preserve">
+    <value>RegistryKey</value>
+  </data>
+  <data name="Released" xml:space="preserve">
+    <value>Released</value>
+  </data>
+  <data name="RemindLater" xml:space="preserve">
+    <value>Remind Me Later</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="RemoveAllFiles" xml:space="preserve">
+    <value>Remove All Files</value>
+  </data>
+  <data name="RemoveEmailItemManualy" xml:space="preserve">
+    <value>Combo Cleaner was unable to remove this threat automatically. Please open you email app and remove this email from your inbox manually.</value>
+  </data>
+  <data name="RemoveSelected" xml:space="preserve">
+    <value>Remove Selected</value>
+  </data>
+  <data name="RemoveSelectedFiles" xml:space="preserve">
+    <value>Remove Selected Files</value>
+  </data>
+  <data name="Request" xml:space="preserve">
+    <value>request</value>
+  </data>
+  <data name="RequestTrial" xml:space="preserve">
+    <value>Request Trial</value>
+  </data>
+  <data name="ResolveFoundIssues" xml:space="preserve">
+    <value>Resolve found issues</value>
+  </data>
+  <data name="ResolveFoundThreats" xml:space="preserve">
+    <value>Resolve found threats</value>
+  </data>
+  <data name="Restarting" xml:space="preserve">
+    <value>Restarting...</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="Rootkit" xml:space="preserve">
+    <value>Rootkit</value>
+  </data>
+  <data name="Safe" xml:space="preserve">
+    <value>Safe</value>
+  </data>
+  <data name="Saturday" xml:space="preserve">
+    <value>Saturday</value>
+  </data>
+  <data name="Scan" xml:space="preserve">
+    <value>Scan</value>
+  </data>
+  <data name="ScanAction" xml:space="preserve">
+    <value>Scan action:</value>
+  </data>
+  <data name="ScanActionDescription" xml:space="preserve">
+    <value>Choose which action Combo Cleaner should take when malware infection is detected.</value>
+  </data>
+  <data name="ScanArchives" xml:space="preserve">
+    <value>Scan archives:</value>
+  </data>
+  <data name="ScanArchivesDescription" xml:space="preserve">
+    <value>Increases the scan time, but can uncover malware hidden in compressed files.</value>
+  </data>
+  <data name="ScanCookies" xml:space="preserve">
+    <value>Scan cookies:</value>
+  </data>
+  <data name="ScanCookiesDescription" xml:space="preserve">
+    <value>Scans for malware in files written by the web browser while browsing the internet.</value>
+  </data>
+  <data name="ScanDuration" xml:space="preserve">
+    <value>Scan duration</value>
+  </data>
+  <data name="ScanEmails" xml:space="preserve">
+    <value>Scan emails:</value>
+  </data>
+  <data name="ScanEmailsDescription" xml:space="preserve">
+    <value>Scans plain text emails and email databases.</value>
+  </data>
+  <data name="ScanOptionNotAvailable" xml:space="preserve">
+    <value>Scan Option Not Available</value>
+  </data>
+  <data name="ScanOptionNotAvailableDescription" xml:space="preserve">
+    <value>You are using a limited functionality version.
+This scan option is available for premium users
+of Combo Cleaner.</value>
+  </data>
+  <data name="ScanOptionNotAvailableDescriptionTrial" xml:space="preserve">
+    <value>You are using a trial version. This scan option is available
+for premium users of Combo Cleaner.</value>
+  </data>
+  <data name="ScanProcesses" xml:space="preserve">
+    <value>Scan Processes:</value>
+  </data>
+  <data name="ScanProcessesDescription" xml:space="preserve">
+    <value>Scan objects loaded on operating system memory.</value>
+  </data>
+  <data name="ScanRegistry" xml:space="preserve">
+    <value>Scan Registry:</value>
+  </data>
+  <data name="ScanRegistryDescription" xml:space="preserve">
+    <value>Scan registry database, which stores low-level settings for the Windows operating system.</value>
+  </data>
+  <data name="ScanTime" xml:space="preserve">
+    <value>Scan time</value>
+  </data>
+  <data name="ScanType" xml:space="preserve">
+    <value>Scan type</value>
+  </data>
+  <data name="ScanningFinished" xml:space="preserve">
+    <value>Combo Cleaner has finished scanning your computer.</value>
+  </data>
+  <data name="Scheduled" xml:space="preserve">
+    <value> (Scheduled)</value>
+  </data>
+  <data name="ScheduledScan" xml:space="preserve">
+    <value>Scheduled Scan</value>
+  </data>
+  <data name="ScheduledScanDescription" xml:space="preserve">
+    <value>In addition to real-time protection and on-demand scans, set up regular, scheduled scans.</value>
+  </data>
+  <data name="ScheduledScanInProgress" xml:space="preserve">
+    <value>Scheduled Scan in Progress</value>
+  </data>
+  <data name="SecondOneLetter" xml:space="preserve">
+    <value>s</value>
+  </data>
+  <data name="SecurityThreats" xml:space="preserve">
+    <value>Security Threats</value>
+  </data>
+  <data name="SecurtityThreatsSoFar" xml:space="preserve">
+    <value>security threats so far</value>
+  </data>
+  <data name="SelectFile" xml:space="preserve">
+    <value>Select a file</value>
+  </data>
+  <data name="SelectFilesToRemove" xml:space="preserve">
+    <value>Select Files to Remove</value>
+  </data>
+  <data name="SelectFolderToScan" xml:space="preserve">
+    <value>Select folder to scan</value>
+  </data>
+  <data name="SelectScanFrequencyScanTypeAndTheTimeWhenTheScanShouldStart" xml:space="preserve">
+    <value>Select scan frequency, scan type and time when the scan should start.</value>
+  </data>
+  <data name="Selected" xml:space="preserve">
+    <value>Selected:</value>
+  </data>
+  <data name="SendAnonymousData" xml:space="preserve">
+    <value>Share usage data:</value>
+  </data>
+  <data name="SendAnonymousDataDescription" xml:space="preserve">
+    <value>Share anonymous usage and error data with the developer.</value>
+  </data>
+  <data name="SendDebugInformationToHelpIdentifyIssues" xml:space="preserve">
+    <value>Send debug information to help identify issues</value>
+  </data>
+  <data name="SendMessage" xml:space="preserve">
+    <value>Send Message</value>
+  </data>
+  <data name="ServerErrorPleaseTryAgainInFewMinutes" xml:space="preserve">
+    <value>Server error, please try again in a few minutes</value>
+  </data>
+  <data name="SetReminder" xml:space="preserve">
+    <value>Set Reminder</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SignaturesUpdated" xml:space="preserve">
+    <value>Signatures Updated</value>
+  </data>
+  <data name="SilentMode" xml:space="preserve">
+    <value>Silent mode</value>
+  </data>
+  <data name="SingleMalwareFound" xml:space="preserve">
+    <value>Malware threat was detected during {0} scan. Click on "Resolve found threats" button to view the scan results.</value>
+  </data>
+  <data name="SingleSuspicousFound" xml:space="preserve">
+    <value>Suspicious item was detected during {0} scan. Click on "Resolve found threats" button to view the scan results.</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="SmartScan" xml:space="preserve">
+    <value>Smart scan:</value>
+  </data>
+  <data name="SmartScanDescription" xml:space="preserve">
+    <value>Decreases the time needed to scan the computer after the initial scan is done.</value>
+  </data>
+  <data name="SoftwareLicenseAgreement" xml:space="preserve">
+    <value>Software License Agreement:</value>
+  </data>
+  <data name="Sound" xml:space="preserve">
+    <value>Sound</value>
+  </data>
+  <data name="Sounds" xml:space="preserve">
+    <value>Sounds:</value>
+  </data>
+  <data name="SoundsDescription" xml:space="preserve">
+    <value>Turns off all notification sounds.</value>
+  </data>
+  <data name="Spam" xml:space="preserve">
+    <value>Spam</value>
+  </data>
+  <data name="Spyware" xml:space="preserve">
+    <value>Spyware</value>
+  </data>
+  <data name="StartOver" xml:space="preserve">
+    <value>Start Over</value>
+  </data>
+  <data name="StartScan" xml:space="preserve">
+    <value>Start Scan</value>
+  </data>
+  <data name="StartingEngine" xml:space="preserve">
+    <value>Starting engine</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Stopping" xml:space="preserve">
+    <value>Stopping...</value>
+  </data>
+  <data name="Stream" xml:space="preserve">
+    <value>Stream</value>
+  </data>
+  <data name="Subject" xml:space="preserve">
+    <value>Subject</value>
+  </data>
+  <data name="SubscribeToComboCleanerPremiumAndGet" xml:space="preserve">
+    <value>Subscribe to Combo Cleaner Premium and Get:</value>
+  </data>
+  <data name="SubscribedPanelParagraph" xml:space="preserve">
+    <value>During your use, Combo Cleaner has freed [TotalDeleted] of disk space
+and eliminated [TotalThreatsFound] security threats so far.</value>
+  </data>
+  <data name="Subscription" xml:space="preserve">
+    <value>Subscription</value>
+  </data>
+  <data name="Success" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Sunday" xml:space="preserve">
+    <value>Sunday</value>
+  </data>
+  <data name="Support" xml:space="preserve">
+    <value>Support</value>
+  </data>
+  <data name="SupportEmailSendDescription" xml:space="preserve">
+    <value>Thank you! A support ticket has been created for your request and we will respond as soon as possible.</value>
+  </data>
+  <data name="SupportLowCase" xml:space="preserve">
+    <value>support</value>
+  </data>
+  <data name="Suspicous" xml:space="preserve">
+    <value>Suspicious </value>
+  </data>
+  <data name="SuspicousItemsDetected" xml:space="preserve">
+    <value>Suspicious items detected</value>
+  </data>
+  <data name="SystemScan" xml:space="preserve">
+    <value>System Scan</value>
+  </data>
+  <data name="TechnicalSupport" xml:space="preserve">
+    <value>Technical support</value>
+  </data>
+  <data name="ThereIsNoProtectedFolders" xml:space="preserve">
+    <value>There are no Protected Folders</value>
+  </data>
+  <data name="ThereIsNoScheduledPaths" xml:space="preserve">
+    <value>There are no Scheduled Paths</value>
+  </data>
+  <data name="ThereIsNoTrustedPrograms" xml:space="preserve">
+    <value>There are no Trusted Programs</value>
+  </data>
+  <data name="ThereIsNotEnoughSpaceAvailable" xml:space="preserve">
+    <value>There is not enough space available to use Combo Cleaner. Please free enough disk space, and then try again.</value>
+  </data>
+  <data name="Threat" xml:space="preserve">
+    <value>Threat</value>
+  </data>
+  <data name="ThreatBlockedByAntiRansomware" xml:space="preserve">
+    <value>Threat blocked by Anti-Ransomware</value>
+  </data>
+  <data name="ThreatBlockedByRealTimeProtection" xml:space="preserve">
+    <value>Threat blocked by Real-Time Protection</value>
+  </data>
+  <data name="ThreatBlockedByWebProtection" xml:space="preserve">
+    <value>Threat blocked by Web Protection</value>
+  </data>
+  <data name="ThreatName" xml:space="preserve">
+    <value>Threat Name</value>
+  </data>
+  <data name="ThreatScanResults" xml:space="preserve">
+    <value>Threat Scan results</value>
+  </data>
+  <data name="ThreatType" xml:space="preserve">
+    <value>Threat type:</value>
+  </data>
+  <data name="ThreatsDetected" xml:space="preserve">
+    <value>Threats detected</value>
+  </data>
+  <data name="Thursday" xml:space="preserve">
+    <value>Thursday</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="ToFinishRemovingDetectedThreatsYourComputerNeedsToBeRestarted" xml:space="preserve">
+    <value>To finish removing this threat, your computer need to be restarted.</value>
+  </data>
+  <data name="ToUpdateComboCleanerYouNeedToProvideAdministratorPermission" xml:space="preserve">
+    <value>To update Combo Cleaner you need to provide administrator permission.</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="Today_Lowercase" xml:space="preserve">
+    <value>today</value>
+  </data>
+  <data name="TotalDiskSpace" xml:space="preserve">
+    <value>Total Disk Space</value>
+  </data>
+  <data name="TotalItemsDetected" xml:space="preserve">
+    <value>Total items detected</value>
+  </data>
+  <data name="TotalItemsInQuarantine" xml:space="preserve">
+    <value>Total files in quarantine</value>
+  </data>
+  <data name="TotalMemory" xml:space="preserve">
+    <value>Total Memory</value>
+  </data>
+  <data name="TotalVirusSignatures" xml:space="preserve">
+    <value>Total Malware Signatures</value>
+  </data>
+  <data name="TrialExpiredBoldDescription" xml:space="preserve">
+    <value>Purchase Combo Cleaner today to stay protected.</value>
+  </data>
+  <data name="TrialExpiredDescription" xml:space="preserve">
+    <value>Because your trial has stopped, this means real-time antimalware, anti-ransomware and web browsing protection features will no longer be functional.</value>
+  </data>
+  <data name="TrialLicenseExpired" xml:space="preserve">
+    <value>Trial license expired</value>
+  </data>
+  <data name="TrialVersion" xml:space="preserve">
+    <value>Trial version</value>
+  </data>
+  <data name="TrustedPrograms" xml:space="preserve">
+    <value>Trusted Programs:</value>
+  </data>
+  <data name="Tuesday" xml:space="preserve">
+    <value>Tuesday</value>
+  </data>
+  <data name="TurnOffNotifications" xml:space="preserve">
+    <value>Turn off notifications</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Typing" xml:space="preserve">
+    <value>Typing</value>
+  </data>
+  <data name="UIClosedDescription" xml:space="preserve">
+    <value>The app is not closed and is minimized to the system tray. To close the app completely, exit the app from the system tray by right clicking the Combo Cleaner icon.
+</value>
+  </data>
+  <data name="Unavailable" xml:space="preserve">
+    <value>Unavailable</value>
+  </data>
+  <data name="UndefinedError" xml:space="preserve">
+    <value>Undefined error</value>
+  </data>
+  <data name="Uninstall" xml:space="preserve">
+    <value>Uninstall:</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="UnresolvedThreat" xml:space="preserve">
+    <value>Unresolved threat</value>
+  </data>
+  <data name="UnresolvedThreats" xml:space="preserve">
+    <value>Unresolved threats</value>
+  </data>
+  <data name="UnresolvedThreatsDescription" xml:space="preserve">
+    <value>Detected malware and suspicious items will not be remediated.Are you sure you want to ignore all the detected threats and start over the scan process ?</value>
+  </data>
+  <data name="UntilRestart" xml:space="preserve">
+    <value>Until restart</value>
+  </data>
+  <data name="Untrusted" xml:space="preserve">
+    <value>Untrusted</value>
+  </data>
+  <data name="UnwantedExtension" xml:space="preserve">
+    <value>Unwanted Extension</value>
+  </data>
+  <data name="UpTo1GB" xml:space="preserve">
+    <value>Up to 1 GB </value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>Update available</value>
+  </data>
+  <data name="UpdateAvailableManual" xml:space="preserve">
+    <value>* You have chosen to install updates manually. To keep your computer secure, we strongly recommend that you enable automatic updates</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>UpdateFailed</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Update Now</value>
+  </data>
+  <data name="UpdateNowQuestion" xml:space="preserve">
+    <value>Update now?</value>
+  </data>
+  <data name="Updating" xml:space="preserve">
+    <value>Updating</value>
+  </data>
+  <data name="UpdatingAntiMalwareDatabase" xml:space="preserve">
+    <value>Updating anti-malware database</value>
+  </data>
+  <data name="UpdatingAntiMalwareDatabasePleaseWait" xml:space="preserve">
+    <value>Updating anti-malware database, please wait...</value>
+  </data>
+  <data name="UpdatingDefinitions" xml:space="preserve">
+    <value>Updating definitions</value>
+  </data>
+  <data name="Upgrade" xml:space="preserve">
+    <value>Upgrade</value>
+  </data>
+  <data name="UpgradeNow" xml:space="preserve">
+    <value>Upgrade Now</value>
+  </data>
+  <data name="UpgradeToPremium" xml:space="preserve">
+    <value>Upgrade to Premium</value>
+  </data>
+  <data name="UpgradeToRemoveAllThreats" xml:space="preserve">
+    <value>Remove all threats</value>
+  </data>
+  <data name="UploadScreenshot" xml:space="preserve">
+    <value>Upload a screenshot</value>
+  </data>
+  <data name="Url" xml:space="preserve">
+    <value>URL:</value>
+  </data>
+  <data name="UsesBitDefenderSDK" xml:space="preserve">
+    <value>Antivirus engine uses BitDefender SDK</value>
+  </data>
+  <data name="ValidatingLicenseKey" xml:space="preserve">
+    <value>Validating license key</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="Video" xml:space="preserve">
+    <value>Video</value>
+  </data>
+  <data name="ViewResults" xml:space="preserve">
+    <value>View results</value>
+  </data>
+  <data name="Virus" xml:space="preserve">
+    <value>Virus</value>
+  </data>
+  <data name="VirusDefinitions" xml:space="preserve">
+    <value>Virus definitions</value>
+  </data>
+  <data name="VirusQuarantine" xml:space="preserve">
+    <value>Virus Quarantine</value>
+  </data>
+  <data name="WeHaveDeletedPath" xml:space="preserve">
+    <value>We have deleted "{0}" because it contains {1}.</value>
+  </data>
+  <data name="WeHaveDeletedPathPUP" xml:space="preserve">
+    <value>We have deleted "{0}".</value>
+  </data>
+  <data name="WeHaveMovedToQuar" xml:space="preserve">
+    <value>We have moved "{0}" to Quarantine because it contains {1}.</value>
+  </data>
+  <data name="WeHaveMovedToQuarPUP" xml:space="preserve">
+    <value>We have moved "{0}" to Quarantine.</value>
+  </data>
+  <data name="WebBrowsingProtection" xml:space="preserve">
+    <value>Web browsing protection</value>
+  </data>
+  <data name="WebProtectionBlockedLongMessage" xml:space="preserve">
+    <value>Combo Cleaner has blocked connection to this website because it might harm your computer.</value>
+  </data>
+  <data name="WebProtectionDesciption" xml:space="preserve">
+    <value>Shields your internet browsing: blocks scams, phishing, malicious downloads and rogue websites.</value>
+  </data>
+  <data name="Wednesday" xml:space="preserve">
+    <value>Wednesday</value>
+  </data>
+  <data name="Weekly" xml:space="preserve">
+    <value>Weekly</value>
+  </data>
+  <data name="WhatIsImproved" xml:space="preserve">
+    <value>What's Improved</value>
+  </data>
+  <data name="WhiteList" xml:space="preserve">
+    <value>WhiteList</value>
+  </data>
+  <data name="WhiteListDescription" xml:space="preserve">
+    <value>User-managed list of applications and files that are not checked for malicious behaviour by Combo Cleaner.</value>
+  </data>
+  <data name="WhitelistedFile" xml:space="preserve">
+    <value>Whitelisted File</value>
+  </data>
+  <data name="WithComboCleanerPremiumYouGet" xml:space="preserve">
+    <value>With Combo Cleaner Premium you get:</value>
+  </data>
+  <data name="WriteUsAMessage" xml:space="preserve">
+    <value>Send Us A Message</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Yesterday" xml:space="preserve">
+    <value>Yesterday</value>
+  </data>
+  <data name="YouAlsoHaveAnOptionTo" xml:space="preserve">
+    <value>You also have an option to </value>
+  </data>
+  <data name="YouAreSubscribedToComboCleanerPremium" xml:space="preserve">
+    <value>You are subscribed to Combo Cleaner Premium</value>
+  </data>
+  <data name="YouAreUsingAFreeVersionOfComboCleanerToRemoveDetectedItemsYouNeedTo" xml:space="preserve">
+    <value>You are using a free version of Combo Cleaner. To remove detected items you need to </value>
+  </data>
+  <data name="YouAreUsingCCVersion" xml:space="preserve">
+    <value>You are using Combo Cleaner version {0}</value>
+  </data>
+  <data name="YouAreUsingNewestVersion" xml:space="preserve">
+    <value>You are using the latest version of Combo Cleaner</value>
+  </data>
+  <data name="YouDoNotHaveAnyQuarantinedFiles" xml:space="preserve">
+    <value>You do not have any quarantined files</value>
+  </data>
+  <data name="YouDoNotHaveAnyWhitelistedFiles" xml:space="preserve">
+    <value>You do not have any whitelisted files</value>
+  </data>
+  <data name="YouNeedToProvideAdministratorPermission" xml:space="preserve">
+    <value>You need to provide administrator permission</value>
+  </data>
+  <data name="YouShouldFindYourActivationKeyIn" xml:space="preserve">
+    <value>You should find your Activation Key in the confirmation email you received after purchasing Combo Cleaner</value>
+  </data>
+  <data name="YourLicenseIsSuccessfullyActivated" xml:space="preserve">
+    <value>Your license was successfully activated.</value>
+  </data>
+  <data name="YourLicenseIsSuccessfullyDeactivatedOnThisDevice" xml:space="preserve">
+    <value>Your license is successfully deactivated on this device</value>
+  </data>
+  <data name="YourMessageHasBeenSent" xml:space="preserve">
+    <value>Your Message has been sent</value>
+  </data>
+  <data name="YourTrialHasExpired" xml:space="preserve">
+    <value>Your trial has expired.</value>
+  </data>
+  <data name="_10Min" xml:space="preserve">
+    <value>10 min</value>
+  </data>
+  <data name="_1Hour" xml:space="preserve">
+    <value>1 hour</value>
+  </data>
+  <data name="_1To5GB" xml:space="preserve">
+    <value>1 to 5 GB</value>
+  </data>
+</root>
